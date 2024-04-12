@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<odoo>
+    <data>
+
+        <!-- Product Tree View -->
+        <record id="view_product_tree" model="ir.ui.view">
+            <field name="name">product.tree</field>
+            <field name="model">my_product.product</field>
+            <field name="arch" type="xml">
+
+                <tree string="view_product_tree" delete="False" decoration-danger="stock_quantity &lt; 10">
+
+
+                    <field name="name"/>
+                    <field name="internal_reference"/>
+                    <field name="stock_quantity" readonly="1"/>
+                    <field name="category_id"/>
+                    <field name="type"/>
+                    <field name="sale_price"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Product Form View -->
+        <record id="view_product_form" model="ir.ui.view">
+            <field name="name">product.form</field>
+            <field name="model">my_product.product</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button string="Product Information" class="oe_highlight" colspan="4"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="internal_reference"/>
+                            <field name="stock_quantity" readonly="1"/>
+
+                            <field name="category_id"/>
+                        </group>
+
+                        <notebook>
+                            <!-- Sales Information Page -->
+                            <page string="Sales Information">
+                                <group>
+                                    <field name="type"/>
+                                    <field name="sale_price"/>
+                                    <field name="sales_description"/>
+                                </group>
+                                <group>
+                                    <field name="taxes_id"/>
+                                     <field name="income_account_id"/>
+                                </group>
+                            </page>
+
+                            <!-- Costing Information Page -->
+                            <page string="Costing Information">
+                                <group>
+                                    <field name="bom_id"/>
+
+
+                                </group>
+                                <group>
+                                    <field name="cost" readonly="1"/>
+                                </group>
+                            </page>
+
+                            <!-- Additional Information Page -->
+                            <page string="Additional Information">
+                                <group>
+                                    <field name="uom_id"/>
+                                    <field name="purchase_description"/>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Product Action -->
+        <record id="action_view_product" model="ir.actions.act_window">
+            <field name="name">Products</field>
+            <field name="res_model">my_product.product</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Click to create a new product.
+                </p>
+            </field>
+        </record>
+
+    </data>
+</odoo>
