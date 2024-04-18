@@ -1,0 +1,28 @@
+kind: pipeline
+<<<<<<< HEAD
+type: docker
+name: default
+
+steps:
+  - name: update_custom_module
+    image: alpine/git
+    commands:
+      - git clone https://github.com/Ayuubi/uatidil.git /tmp/uatidil
+      - cp -r /tmp/uatidil/* /home/opc/addons/uatidil
+      - docker-compose -f /path/to/your/docker-compose.yml restart odoo17
+=======
+name: default
+
+steps:
+  - name: pull_changes
+    image: alpine/git
+    commands:
+      - git pull origin main
+
+  - name: deploy
+    image: odoo:17
+    commands:
+      - cp -r /mnt/extra-addons/* /mnt/odoo-addons/  # Copy custom module to Odoo addons directory
+      - odoo -i uatidil -d postgres --stop-after-init  # Install or update the custom module
+
+>>>>>>> 354ce538b6afd6cc589a80cbd3d2b6726032abb7
