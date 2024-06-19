@@ -8,7 +8,7 @@ class Product(models.Model):
     _description = 'Product'
 
     name = fields.Char(string='Product Name', required=True)
-    internal_reference = fields.Char(string='Internal Reference', required=True, unique=True)
+    internal_reference = fields.Char(string='Internal Reference', required=True)
     stock_quantity = fields.Float(string='Stock Quantity', default=0.0)
     category_id = fields.Many2one('idil.item.category', string='Product Category')
     type = fields.Selection([
