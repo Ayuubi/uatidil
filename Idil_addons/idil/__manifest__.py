@@ -1,5 +1,5 @@
 {
-    'name': 'lastly',
+    'name': 'lastlyy',
     'version': '1.0.0',
     'category': 'Idil',
     'summary': 'Idil Management System',
