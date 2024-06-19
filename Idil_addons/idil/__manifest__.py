@@ -1,5 +1,5 @@
 {
-    'name': 'StocknowTest',
+    'name': 'lastly',
     'version': '1.0.0',
     'category': 'Idil',
     'summary': 'Idil Management System',
