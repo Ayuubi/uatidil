@@ -3,11 +3,20 @@
     'version': '1.0.0',
     'category': 'Idil',
     'summary': 'Idil Management System',
-    'description': "test",
-    'depends': ['mail'],
+    'description': "Test",
+    'depends': ['mail', 'point_of_sale'],
     'application': True,
     'sequence': -100,
     'author': 'Mohamed Dahir Ali',
+
+    'assets': {
+        'point_of_sale.assets': [
+            'Idil/static/src/js/pos_customer_modification.js',
+            'Idil/static/src/js/pos_custom_product.js',
+
+        ],
+    },
+
     'data': [
         'data/idil_sequence.xml',
         'data/delete.xml',
@@ -39,10 +48,10 @@
         'views/sales.xml',
         'views/sales_staff.xml',
         'views/SalespersonPlaceOrder.xml',
-        'views/PosScreen.xml',
         'views/sales_reciept_view.xml',
         'views/Sales_reciept.xml',
+        'views/pos_menu_view.xml',
+        'views/pos_session_view.xml',
         'views/menu.xml',
-
     ],
 }

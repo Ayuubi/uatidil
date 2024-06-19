@@ -27,7 +27,7 @@ class TransactionBooking(models.Model):
     Sales_order_number = fields.Char(string='Sales Order Number')
 
     payment_method = fields.Selection(
-        [('cash', 'Cash'), ('ap', 'A/P'), ('bank_transfer', 'Bank Transfer')],
+        [('cash', 'Cash'), ('ap', 'A/P'), ('bank_transfer', 'Bank Transfer'), ('other', 'other')],
         string='Payment Method', required=True
     )
     payment_status = fields.Selection(
@@ -65,17 +65,36 @@ class TransactionBooking(models.Model):
             record.remaining_amount = record.amount - record.amount_paid
 
     # Code for sales receipt
+    # @api.constrains('amount_paid')
+    # def _check_amount_paid(self):
+    #     for record in self:
+    #         if record.amount_paid > record.amount:
+    #             raise ValidationError(
+    #                 "The paid amount cannot be greater than the balance.\nBalance: %s\nAmount Needed to Pay: %s" % (
+    #                     self.amount, self.amount_paid))
+
     @api.constrains('amount_paid')
     def _check_amount_paid(self):
+        if self.env.context.get('skip_validations'):
+            return
         for record in self:
             if record.amount_paid > record.amount:
                 raise ValidationError(
                     "The paid amount cannot be greater than the balance.\nBalance: %s\nAmount Needed to Pay: %s" % (
-                        self.amount, self.amount_paid))
+                        record.amount, record.amount_paid))
 
     # Code for sales receipt
+    # @api.onchange('amount_paid')
+    # def _onchange_amount_paid(self):
+    #     if self.amount_paid > self.amount:
+    #         raise ValidationError(
+    #             "The paid amount cannot be greater than the balance.\nBalance: %s\nAmount Needed to Pay: %s" % (
+    #                 self.amount, self.amount_paid))
+
     @api.onchange('amount_paid')
     def _onchange_amount_paid(self):
+        if self.env.context.get('skip_validations'):
+            return
         if self.amount_paid > self.amount:
             raise ValidationError(
                 "The paid amount cannot be greater than the balance.\nBalance: %s\nAmount Needed to Pay: %s" % (

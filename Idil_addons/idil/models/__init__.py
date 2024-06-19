@@ -15,5 +15,9 @@ from . import trx_source
 from . import SalesPersonPlaceOrder
 from . import sales
 from . import sales_staff
-from . import PosScreen
 from . import delete
+from . import pos_order_mod
+from . import CustomPosSession
+from . import pos_session
+from . import posorder
+from . import pos_custom_product

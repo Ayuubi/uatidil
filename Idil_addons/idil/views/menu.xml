@@ -158,11 +158,11 @@
               action="action_sale_order"/>
 
 
-     <menuitem id="menu_sales_receipt_balance"
-          name="Sales Receipt"
-          parent="menu_orders"
-          action="action_sales_related_pending_transactions"
-          sequence="5"/>
+    <menuitem id="menu_sales_receipt_balance"
+              name="Sales Receipt"
+              parent="menu_orders"
+              action="action_sales_related_pending_transactions"
+              sequence="5"/>
 
 
     <menuitem id="menu_Order_Operations"
@@ -220,11 +220,11 @@
               action="action_view_transaction_bookingline_table"
               sequence="4"/>
 
-     <menuitem id="menu_sales_personnel_balance"
-          name="Sales Receipt"
-          parent="Reports"
-          action="action_sales_receipt_balance"
-          sequence="5"/>
+    <menuitem id="menu_sales_personnel_balance"
+              name="Sales Receipt"
+              parent="Reports"
+              action="action_sales_receipt_balance"
+              sequence="5"/>
 
 
     <menuitem id="model_a_menu"
@@ -233,5 +233,15 @@
               parent="menu_idil_home"
               sequence="1000"/>
 
+    <!-- Add the custom menu item -->
+    <menuitem id="menu_custom_pos"
+              name="Custom POS"
+              parent="menu_idil_home"
+              action="action_pos_config"
+              sequence="1020"/>
 
+    <menuitem id="menu_pos_session"
+              name="POS Sessions"
+              parent="menu_idil_home"
+              action="action_pos_session"/>
 </odoo>
