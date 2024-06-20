@@ -44,6 +44,7 @@ class Product(models.Model):
     bom_id = fields.Many2one('idil.bom', string='BOM', help='Select BOM for costing',
                              attrs={'invisible': [('costing_method', '=', 'fixedprice')]})
     available_in_pos = fields.Boolean(string='Available in POS', default=True)
+    image_1920 = fields.Binary(string='Image')  # Assuming you use Odoo's standard image field
 
     @api.depends('bom_id', 'bom_id.total_cost')
     def _compute_product_cost(self):

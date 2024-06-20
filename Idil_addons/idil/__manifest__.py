@@ -1,5 +1,5 @@
 {
-    'name': 'final',
+    'name': 'Idil',
     'version': '1.0.0',
     'category': 'Idil',
     'summary': 'Idil Management System',
@@ -12,7 +12,7 @@
     'assets': {
         'point_of_sale.assets': [
             'Idil/static/src/js/pos_customer_modification.js',
-
+            'Idil/static/src/js/pos_custom_product.js',
 
         ],
     },
