@@ -3,7 +3,7 @@
     'version': '1.0.0',
     'category': 'Idil',
     'summary': 'Idil Management System',
-    'description': "Test",
+    'description': "Mohamed Dahir Ali",
     'depends': ['mail', 'point_of_sale'],
     'application': True,
     'sequence': -100,
