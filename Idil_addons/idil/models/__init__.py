@@ -20,5 +20,4 @@ from . import pos_order_mod
 from . import CustomPosSession
 from . import pos_session
 from . import posorder
-from . import pos_config_extension
 
