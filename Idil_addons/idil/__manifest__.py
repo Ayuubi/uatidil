@@ -1,5 +1,5 @@
 {
-    'name': 'Idil',
+    'name': 'Nagaad Coffee',
     'version': '1.0.0',
     'category': 'Idil',
     'summary': 'Idil Management System',
