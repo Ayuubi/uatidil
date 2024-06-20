@@ -7,7 +7,7 @@
     'depends': ['mail', 'point_of_sale'],
     'application': True,
     'sequence': -100,
-    'author': 'Mohamed Dahir Ali',
+    'author': 'MDC',
 
     'assets': {
         'point_of_sale.assets': [
