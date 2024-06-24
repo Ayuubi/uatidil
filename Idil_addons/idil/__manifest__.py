@@ -1,5 +1,5 @@
 {
-    'name': 'Nagaad Coffee Palaza',
+    'name': 'Nagaad Coffe Palaza',
     'version': '1.0.0',
     'category': 'Idil',
     'summary': 'Idil Management System',
