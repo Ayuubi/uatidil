@@ -4,20 +4,26 @@
     'category': 'Idil',
     'summary': 'Idil Management System',
     'description': "Mohamed Dahir",
-    'depends': ['mail', 'point_of_sale'],
+    'depends': ['mail', 'point_of_sale', 'web'],
     'application': True,
     'sequence': -100,
     'author': 'MDC',
 
     'assets': {
+        'web.assets_common': [
+            'idil/static/src/scss/primary_variables.scss',
+        ],
         'point_of_sale.assets': [
-            'Idil/static/src/js/pos_customer_modification.js',
-            'Idil/static/src/js/pos_custom_product.js',
-
+            'idil/static/src/js/pos_customer_modification.js',
         ],
     },
 
     'data': [
+        'data/restaurant_chart_of_accounts.xml',
+        'data/customer_types.xml',  # Reference to your XML data file
+        'data/unit_measures.xml',  # Reference to your XML data file
+        'data/item_categories.xml',  # Reference to your XML data file
+
         'data/idil_sequence.xml',
         'data/delete.xml',
         'data/booking_sequence.xml',
@@ -52,6 +58,9 @@
         'views/Sales_reciept.xml',
         'views/pos_menu_view.xml',
         'views/pos_session_view.xml',
+        'views/pos_payment_method_views.xml',
+        'views/idil_employee_views.xml',
+
         'views/menu.xml',
     ],
 }

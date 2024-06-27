@@ -65,12 +65,21 @@ class Product(models.Model):
     name = fields.Char(string='Product Name', required=True)
     internal_reference = fields.Char(string='Internal Reference', required=True)
     stock_quantity = fields.Float(string='Stock Quantity', default=0.0)
-    category_id = fields.Many2one('idil.item.category', string='Product Category')
-    type = fields.Selection([
-        ('stockable', 'Stockable Product'),
-        ('consumable', 'Consumable'),
-        ('service', 'Service')],
-        string='Product Type', default='stockable', required=True)
+    category_id = fields.Many2one('product.category', string='Product Category')
+    # New field for POS categories
+    available_in_pos = fields.Boolean(string='Available in POS', default=True)
+
+    pos_categ_ids = fields.Many2many('pos.category', string='POS Categories',
+                                     )
+
+    detailed_type = fields.Selection([
+        ('consu', 'Consumable'),
+        ('service', 'Service')
+    ], string='Product Type', default='consu', required=True,
+        help='A storable product is a product for which you manage stock. The Inventory app has to be installed.\n'
+             'A consumable product is a product for which stock is not managed.\n'
+             'A service is a non-material product you provide.')
+
     sale_price = fields.Float(string='Sales Price', required=True)
     cost = fields.Float(string='Cost', compute='_compute_product_cost', store=True)
     sales_description = fields.Text(string='Sales Description')
@@ -91,7 +100,6 @@ class Product(models.Model):
         domain="[('code', 'like', '4')]"  # Domain to filter accounts starting with '4'
     )
     bom_id = fields.Many2one('idil.bom', string='BOM', help='Select BOM for costing')
-    available_in_pos = fields.Boolean(string='Available in POS', default=True)
     image_1920 = fields.Binary(string='Image')  # Assuming you use Odoo's standard image field
 
     @api.depends('bom_id', 'bom_id.total_cost')
@@ -124,24 +132,33 @@ class Product(models.Model):
             odoo_product = ProductProduct.search([('default_code', '=', product.internal_reference)], limit=1)
             if not odoo_product:
                 odoo_product = ProductProduct.create({
+                    'my_product_id': product.id,
                     'name': product.name,
                     'default_code': product.internal_reference,
-                    'type': type_mapping[product.type],
+                    'type': product.detailed_type,
                     'list_price': product.sale_price,
                     'standard_price': product.cost,
-                    'categ_id': product.category_id.id if product.category_id else False,
+                    # 'categ_id': product.pos_categ_ids.id if product.pos_categ_ids else False,
+                    'categ_id': product.pos_categ_ids[0].id if product.pos_categ_ids else False,
+
+                    'pos_categ_ids': product.pos_categ_ids,
                     'uom_id': product.uom_id.id if product.uom_id else False,
                     'available_in_pos': product.available_in_pos,
                     'image_1920': product.image_1920,
                 })
             else:
                 odoo_product.write({
+                    'my_product_id': product.id,
+
                     'name': product.name,
                     'default_code': product.internal_reference,
-                    'type': type_mapping[product.type],
+                    'type': product.detailed_type,
                     'list_price': product.sale_price,
                     'standard_price': product.cost,
-                    'categ_id': product.category_id.id if product.category_id else False,
+                    'categ_id': product.pos_categ_ids[0].id if product.pos_categ_ids else False,
+
+                    'pos_categ_ids': product.pos_categ_ids,
+
                     'uom_id': product.uom_id.id if product.uom_id else False,
                     'available_in_pos': product.available_in_pos,
                     'image_1920': product.image_1920,

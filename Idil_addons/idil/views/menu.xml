@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <menuitem id="menu_idil_home"
-              name="IDIL BAKERY &amp; SWEETS"
+              name="NAGAAD COFFEE  &amp; RESTAURANT"
               web_icon="Idil,static/description/icon.png"
               sequence="1"/>
 
@@ -85,6 +85,11 @@
               parent="menu_idil_accounting"
               action="action_trx_source"
               sequence="3"/>
+
+    <menuitem id="menu_payment_method"
+              name="Payment Methods"
+              parent="menu_idil_accounting"
+              action="action_payment_method" sequence="4"/>
 
 
     <menuitem id="menu_purchase"
@@ -244,4 +249,10 @@
               name="POS Sessions"
               parent="menu_idil_home"
               action="action_pos_session"/>
+
+    <menuitem id="menu_idil_employee"
+              name="Employees"
+              parent="menu_idil_home"
+              action="action_idil_employee"/>
+
 </odoo>

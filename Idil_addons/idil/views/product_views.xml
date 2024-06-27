@@ -16,7 +16,7 @@
                     <field name="internal_reference"/>
                     <field name="stock_quantity" readonly="1"/>
                     <field name="category_id"/>
-                    <field name="type"/>
+                    <field name="detailed_type"/>
                     <field name="sale_price"/>
                 </tree>
             </field>
@@ -33,23 +33,33 @@
                     </header>
                     <sheet>
                         <group>
-                            <field name="name"/>
-                            <field name="internal_reference"/>
-                            <field name="stock_quantity" readonly="1"/>
-
-                            <field name="category_id"/>
-
-
-                        </group>
-                        <group>
-                            <field name="image_1920" class="o_kanban_image_fill_left d-block"
-                                   widget="image" options="{'zoom': true, 'zoom_delay': 5}"/>
+                            <group>
+                                <field name="name"/>
+                                <field name="internal_reference"/>
+                            </group>
+                            <group>
+                                <field name="image_1920" class="o_kanban_image_fill_left d-block"
+                                       widget="image" options="{'size': [200, 200], 'zoom': true, 'zoom_delay': 5}"
+                                       style="width: 200px; height: 200px;"/>
+                            </group>
                         </group>
                         <notebook>
+                            <!-- Inventory Information Page -->
+                            <page string="Inventory Information">
+                                <group>
+                                    <field name="detailed_type"/>
+                                    <field name="category_id"/>
+                                    <field name="pos_categ_ids" widget="many2many_tags" string="POS Menu"/>
+
+                                    <field name="uom_id"/>
+
+                                </group>
+                            </page>
+
                             <!-- Sales Information Page -->
                             <page string="Sales Information">
                                 <group>
-                                    <field name="type"/>
+                                    <field name="stock_quantity" readonly="1"/>
                                     <field name="sale_price"/>
                                     <field name="sales_description"/>
                                 </group>
@@ -63,26 +73,21 @@
                             <page string="Costing Information">
                                 <group>
                                     <field name="bom_id"/>
-
-
                                 </group>
                                 <group>
                                     <field name="cost" readonly="1"/>
+                                    <field name="purchase_description"/>
+
                                 </group>
                             </page>
 
-                            <!-- Additional Information Page -->
-                            <page string="Additional Information">
-                                <group>
-                                    <field name="uom_id"/>
-                                    <field name="purchase_description"/>
-                                </group>
-                            </page>
                         </notebook>
                     </sheet>
                 </form>
             </field>
         </record>
+        Product Form View
+
 
         <!-- Product Action -->
         <record id="action_view_product" model="ir.actions.act_window">

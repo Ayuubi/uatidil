@@ -30,6 +30,9 @@ class TransactionBooking(models.Model):
         [('cash', 'Cash'), ('ap', 'A/P'), ('bank_transfer', 'Bank Transfer'), ('other', 'other')],
         string='Payment Method', required=True
     )
+
+    pos_payment_method = fields.Many2one('pos.payment.method', string='POS Payment Method', required=True)
+
     payment_status = fields.Selection(
         [('pending', 'Pending'), ('paid', 'Paid'), ('partial_paid', 'Partial Paid')],
         string='Payment Status',

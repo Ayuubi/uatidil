@@ -33,4 +33,5 @@ idil.access_idil_vendor_transaction_report,access_idil_vendor_transaction_report
 idil.access_model_a,access_model_a,idil.model_model_a,base.group_user,1,1,1,1
 idil.access_pos_session1,access_pos_session1,idil.model_pos_session1,base.group_user,1,1,1,1
 idil.access_pos_order1,access_pos_order1,idil.model_pos_order1,base.group_user,1,1,1,1
-
+idil.access_idil_payment_method,access_idil_payment_method,idil.model_idil_payment_method,base.group_user,1,1,1,1
+idil.access_idil_employee,access_idil_employee,idil.model_idil_employee,base.group_user,1,1,1,1
