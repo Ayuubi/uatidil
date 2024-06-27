@@ -1,5 +1,5 @@
 {
-    'name': 'Coffe Palaza',
+    'name': 'Idil',
     'version': '1.0.0',
     'category': 'Idil',
     'summary': 'Idil Management System',
