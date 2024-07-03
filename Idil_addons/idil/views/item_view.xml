@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+
+    <!-- Tree view -->
+    <record id="view_idil_item_tree" model="ir.ui.view">
+        <field name="name">idil.item.tree</field>
+        <field name="model">idil.item</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="description"/>
+                <field name="unitmeasure_id"/>
+                <field name="item_category_id" string="Item Category"/>
+                <field name="quantity"/>
+                <field name="cost_price"/>
+                <field name="allergens"/>
+                <field name="purchase_date"/>
+                <field name="expiration_date"/>
+                <field name="order_information"/>
+                <field name="bar_code"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Kanban view -->
+    <record id="view_idil_item_kanban" model="ir.ui.view">
+        <field name="name">idil.item.kanban</field>
+        <field name="model">idil.item</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_superclass">
+                <templates>
+                    <t t-name="kanban-box">
+                        <div>
+                            <field name="name"/>
+                            <field name="description"/>
+                            <field name="unitmeasure_id"/>
+                            <field name="item_category_id" string="Item Category"/>
+                            <field name="quantity"/>
+                            <field name="cost_price"/>
+                            <field name="allergens"/>
+                            <field name="purchase_date"/>
+                            <field name="expiration_date"/>
+                            <field name="order_information"/>
+                            <field name="bar_code"/>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Search view -->
+    <record id="view_idil_item_search" model="ir.ui.view">
+        <field name="name">idil.item.search</field>
+        <field name="model">idil.item</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" string="Item Name"/>
+                <field name="description" string="Description"/>
+                <field name="unitmeasure_id" string="Unit of Measure"/>
+                <field name="item_category_id" string="Item Category"/>
+                <field name="quantity" string="Quantity"/>
+                <field name="cost_price" string="Price per Unit"/>
+                <field name="allergens" string="Allergens/Ingredients"/>
+                <field name="purchase_date" string="Purchase Date"/>
+                <field name="expiration_date" string="Expiration Date"/>
+                <field name="order_information" string="Order Information"/>
+                <field name="bar_code" string="Bar Code"/>
+                <!-- Add more fields to search if needed -->
+            </search>
+        </field>
+    </record>
+
+    <record id="view_idil_item_form" model="ir.ui.view">
+        <field name="model">idil.item</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <notebook>
+                        <page string="Basic Information">
+                            <group>
+                                <field name="name" string="Item Name" class="oe_inline"/> <!-- Reducing field size -->
+                                <field name="description" string="Item Description"
+                                       class="oe_inline"/> <!-- Reducing field size -->
+                                <field name="item_type" string="Item Type"
+                                       class="oe_inline"/> <!-- Reducing field size -->
+
+                            </group>
+                        </page>
+                        <page string="Details">
+                            <group>
+                                <field name="unitmeasure_id" string="Unit of Measure"/>
+                                <field name="item_category_id" string="Item Category"/>
+                                <field name="quantity"/>
+                                 <field name="min"/>
+                                <field name="cost_price" string="Cost Price"/>
+                                <field name="allergens"/>
+                                <field name="image" widget="image"
+                                       options="{'size': (150, 150)}"/> <!-- Adjust size here -->
+                            </group>
+                        </page>
+                        <page string="Additional Information">
+                            <group>
+                                <field name="purchase_date" string="Purchase Date"/>
+                                <field name="expiration_date" string="Expiration Date"/>
+                                <field name="order_information" string="Order Information"/>
+                                <field name="bar_code" string="Bar Code"/>
+                            </group>
+                        </page>
+                        <page string="Account Information">
+                            <group>
+                                <group col="3">
+                                    <!-- Add the new fields here -->
+                                    <field name="purchase_account_id" string="Purchase Account" colspan="1"/>
+                                </group>
+                                <group col="3">
+                                    <field name="sales_account_id" string="Sales Account" colspan="1"/>
+                                </group>
+                                  <group col="3">
+                                      <field name="asset_account_id" string="Asset Account" colspan="1"/>
+                                  </group>
+
+                            </group>
+                        </page>
+
+
+                    </notebook>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="message_ids"/>
+                        <field name="activity_ids"/>
+                    </div>
+                </sheet>
+
+            </form>
+        </field>
+    </record>
+
+
+    <!-- Action for idil.item model -->
+    <record id="action_idil_item" model="ir.actions.act_window">
+        <field name="name">Items</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">idil.item</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="view_id" ref="view_idil_item_tree"/> <!-- Set default view -->
+        <field name="search_view_id" ref="view_idil_item_search"/>
+        <field name="context">{}</field>
+    </record>
+
+
+</odoo>
