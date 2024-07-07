@@ -7,7 +7,7 @@
     'depends': ['mail', 'point_of_sale', 'web'],
     'application': True,
     'sequence': -100,
-    'author': 'podman',
+    'author': 'podi',
 
     'assets': {
         'web.assets_common': [
