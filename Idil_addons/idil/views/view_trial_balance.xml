@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_trial_balance_tree" model="ir.ui.view">
+        <field name="name">trial.balance.tree</field>
+        <field name="model">idil.trial.balance</field>
+        <field name="arch" type="xml">
+            <tree string="Trial Balance">
+                <field name="account_number"/>
+                <field name="label" string="Description" widget="char"/>
+                <field name="dr_balance"/>
+                <field name="cr_balance"/>
+
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_compute_trial_balance" model="ir.actions.server">
+        <field name="name">Compute Trial Balance</field>
+        <field name="model_id" ref="model_idil_transaction_bookingline"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = env['idil.transaction_bookingline'].compute_trial_balance()
+        </field>
+    </record>
+</odoo>

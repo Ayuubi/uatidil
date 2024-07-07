@@ -64,6 +64,8 @@
         'views/idil_employee_views.xml',
         'views/kitchen_views.xml',
         'views/kitchen_transfer_views.xml',
+        'views/view_trial_balance.xml',
+        'views/kitchen_cook.xml',
 
         'views/menu.xml',
     ],

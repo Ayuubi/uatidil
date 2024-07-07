@@ -62,6 +62,7 @@ class Account(models.Model):
         ('payable', 'Account Payable'),
         ('receivable', 'Account Receivable'),
         ('COGS', 'COGS'),
+        ('kitchen', 'kitchen'),
     ]
 
     code = fields.Char(string='Account Code', required=True, tracking=True)

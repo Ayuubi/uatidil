@@ -27,11 +27,12 @@ class TransactionBooking(models.Model):
     Sales_order_number = fields.Char(string='Sales Order Number')
 
     payment_method = fields.Selection(
-        [('cash', 'Cash'), ('ap', 'A/P'), ('bank_transfer', 'Bank Transfer'), ('other', 'other')],
+        [('cash', 'Cash'), ('ap', 'A/P'), ('bank_transfer', 'Bank Transfer'), ('other', 'other'),
+         ('internal', 'Internal')],
         string='Payment Method', required=True
     )
 
-    pos_payment_method = fields.Many2one('pos.payment.method', string='POS Payment Method', required=True)
+    pos_payment_method = fields.Many2one('pos.payment.method', string='POS Payment Method')
 
     payment_status = fields.Selection(
         [('pending', 'Pending'), ('paid', 'Paid'), ('partial_paid', 'Partial Paid')],
@@ -422,3 +423,55 @@ class TransactionBookingline(models.Model):
     dr_amount = fields.Float(string='Debit Amount')
     cr_amount = fields.Float(string='Credit Amount')
     transaction_date = fields.Date(string='Transaction Date', default=lambda self: fields.Date.today())
+
+    @api.model
+    def compute_trial_balance(self):
+        self.env.cr.execute("""
+                SELECT
+                    account_number,
+                    SUM(dr_amount) AS dr_total,
+                    SUM(cr_amount) AS cr_total
+                FROM
+                    idil_transaction_bookingline
+                GROUP BY
+                    account_number
+            """)
+        result = self.env.cr.dictfetchall()
+
+        total_dr_balance = 0
+        total_cr_balance = 0
+
+        self.env['idil.trial.balance'].search([]).unlink()
+
+        for line in result:
+            account = self.env['idil.chart.account'].browse(line['account_number'])
+            if account.sign == 'Dr':
+                dr_balance = line['dr_total'] - line['cr_total']
+                cr_balance = 0
+                total_dr_balance += dr_balance
+            else:
+                dr_balance = 0
+                cr_balance = line['cr_total'] - line['dr_total']
+                total_cr_balance += cr_balance
+
+            self.env['idil.trial.balance'].create({
+                'account_number': account.id,
+                'dr_balance': max(dr_balance, 0),
+                'cr_balance': max(cr_balance, 0),
+            })
+
+        # Create a record to store the grand totals with a label
+        self.env['idil.trial.balance'].create({
+            'account_number': None,
+            'dr_balance': total_dr_balance,
+            'cr_balance': total_cr_balance,
+            'label': 'Grand Total'
+        })
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Trial Balance',
+            'view_mode': 'tree',
+            'res_model': 'idil.trial.balance',
+            'target': 'new',
+        }

@@ -26,3 +26,5 @@ from . import Extend_pos_payment_method
 from . import ProductProduct_reff_to_own_prodcut
 from . import Kitchen
 from . import kitchen_transfer
+from . import TrialBalance
+from . import kitchen_cook_process

@@ -195,6 +195,12 @@
               parent="menu_idil_home"
               sequence="7"/>
 
+    <menuitem id="menu_trial_balance"
+              name="Trial Balance"
+              parent="Reports"
+              sequence="-1"
+              action="action_compute_trial_balance"/>
+
     <menuitem id="Reports_bs"
               name="Account Balances"
               parent="Reports"
@@ -269,7 +275,13 @@
               parent="menu_kitchen_root"
               name="Kitchen Transfers"
               action="action_kitchen_transfer"
-
               sequence="2"/>
+    <!-- Menu Item to Access Kitchen Transfers -->
+    <menuitem id="menu_kitchen_transfer_2"
+              name="Kitchen Cooking Process"
+              parent="menu_kitchen_root"
+              action="action_kitchen_cook_process"
+              sequence="20"/>
+
 
 </odoo>

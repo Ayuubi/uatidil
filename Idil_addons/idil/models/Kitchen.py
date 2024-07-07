@@ -11,3 +11,9 @@ class Kitchen(models.Model):
     contact_email = fields.Char(string='Contact Email')
     contact_phone = fields.Char(string='Contact Phone')
     notes = fields.Text(string='Notes')
+
+    inventory_account = fields.Many2one(
+        'idil.chart.account',
+        string='Inventory Account Number',
+        domain="[('account_type', '=', 'kitchen')]"  # Assuming 'kitchen' is a valid account_type value
+    )

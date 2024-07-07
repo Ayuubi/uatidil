@@ -7,14 +7,29 @@
             <field name="arch" type="xml">
                 <form string="Kitchen">
                     <sheet>
-                        <group>
-                            <field name="name"/>
-                            <field name="location"/>
-                            <field name="contact_person"/>
-                            <field name="contact_email"/>
-                            <field name="contact_phone"/>
-                            <field name="notes"/>
-                        </group>
+                        <sheet>
+                            <group>
+                                <group>
+                                    <field name="name"/>
+                                    <field name="location"/>
+                                </group>
+                                <group>
+                                    <field name="contact_person"/>
+                                    <field name="contact_email"/>
+                                    <field name="contact_phone"/>
+                                </group>
+                            </group>
+                            <group>
+                                <field name="notes"/>
+                            </group>
+                        </sheet>
+                        <notebook>
+                            <page string="Inventory Accounting">
+                                <group>
+                                    <field name="inventory_account" string="Inventory Account"/>
+                                </group>
+                            </page>
+                        </notebook>
                     </sheet>
                 </form>
             </field>
