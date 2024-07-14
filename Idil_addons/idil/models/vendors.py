@@ -31,7 +31,8 @@ class Vendor(models.Model):
         'idil.chart.account',
         string='Account Payable',
         domain=[('account_type', '=', 'payable')],
-        help="This account will be used instead of the default one as the payable account for the current vendor"
+        help="This account will be used instead of the default one as the payable account for the current vendor",
+        required=True
     )
     account_receivable_id = fields.Many2one(
         'idil.chart.account',

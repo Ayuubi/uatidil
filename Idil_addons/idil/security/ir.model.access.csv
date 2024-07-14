@@ -39,3 +39,5 @@ idil.access_idil_kitchen_transfer_line,access_idil_kitchen_transfer_line,idil.mo
 idil.access_idil_trial_balance,access_idil_trial_balance,idil.model_idil_trial_balance,base.group_user,1,1,1,1
 idil.access_idil_kitchen_cook_process,access_idil_kitchen_cook_process,idil.model_idil_kitchen_cook_process,base.group_user,1,1,1,1
 idil.access_idil_kitchen_cook_line,access_idil_kitchen_cook_line,idil.model_idil_kitchen_cook_line,base.group_user,1,1,1,1
+idil.access_idil_journal_entry,access_idil_journal_entry,idil.model_idil_journal_entry,base.group_user,1,1,1,1
+idil.access_idil_journal_entry_line,access_idil_journal_entry_line,idil.model_idil_journal_entry_line,base.group_user,1,1,1,1

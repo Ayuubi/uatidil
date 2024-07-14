@@ -15,6 +15,8 @@ class TransactionBooking(models.Model):
     # Primary Key Fields
     transaction_number = fields.Integer(string='Transaction Number')
     reffno = fields.Char(string='Reference Number')  # Consider renaming for clarity
+    journal_entry_id = fields.Many2one('idil.journal.entry', string='Journal Entry')
+
     vendor_id = fields.Many2one('idil.vendor.registration', string='Vendor')
     vendor_phone = fields.Char(related='vendor_id.phone', string='Vendor Phone', readonly=True)
     vendor_email = fields.Char(related='vendor_id.email', string='Vendor Email', readonly=True)
@@ -27,9 +29,9 @@ class TransactionBooking(models.Model):
     Sales_order_number = fields.Char(string='Sales Order Number')
 
     payment_method = fields.Selection(
-        [('cash', 'Cash'), ('ap', 'A/P'), ('bank_transfer', 'Bank Transfer'), ('other', 'other'),
+        [('cash', 'Cash'), ('ap', 'A/P'), ('bank_transfer', 'Bank Transfer'), ('other', 'Other'),
          ('internal', 'Internal')],
-        string='Payment Method', required=True
+        string='Payment Method'
     )
 
     pos_payment_method = fields.Many2one('pos.payment.method', string='POS Payment Method')
@@ -50,6 +52,9 @@ class TransactionBooking(models.Model):
     amount_paid = fields.Float(string='Amount Paid')
     remaining_amount = fields.Float(string='Remaining Amount', compute='_compute_remaining_amount', store=True)
 
+    debit_total = fields.Float(string='Total Debit', compute='_compute_debit_credit_total', store=True)
+    credit_total = fields.Float(string='Total Credit', compute='_compute_debit_credit_total', store=True)
+
     booking_lines = fields.One2many(
         'idil.transaction_bookingline', 'transaction_booking_id', string='Transaction Lines'
     )
@@ -68,15 +73,6 @@ class TransactionBooking(models.Model):
         for record in self:
             record.remaining_amount = record.amount - record.amount_paid
 
-    # Code for sales receipt
-    # @api.constrains('amount_paid')
-    # def _check_amount_paid(self):
-    #     for record in self:
-    #         if record.amount_paid > record.amount:
-    #             raise ValidationError(
-    #                 "The paid amount cannot be greater than the balance.\nBalance: %s\nAmount Needed to Pay: %s" % (
-    #                     self.amount, self.amount_paid))
-
     @api.constrains('amount_paid')
     def _check_amount_paid(self):
         if self.env.context.get('skip_validations'):
@@ -86,14 +82,6 @@ class TransactionBooking(models.Model):
                 raise ValidationError(
                     "The paid amount cannot be greater than the balance.\nBalance: %s\nAmount Needed to Pay: %s" % (
                         record.amount, record.amount_paid))
-
-    # Code for sales receipt
-    # @api.onchange('amount_paid')
-    # def _onchange_amount_paid(self):
-    #     if self.amount_paid > self.amount:
-    #         raise ValidationError(
-    #             "The paid amount cannot be greater than the balance.\nBalance: %s\nAmount Needed to Pay: %s" % (
-    #                 self.amount, self.amount_paid))
 
     @api.onchange('amount_paid')
     def _onchange_amount_paid(self):
@@ -173,99 +161,123 @@ class TransactionBooking(models.Model):
     #     raise exceptions.UserError('Editing fields using this button is not allowed, use PAY button.')
 
     # ----------------------------------------------------------------------------------------------------
-    def _calculate_account_balance(self, account_id, account_type):
-        transactions = self.env['idil.transaction_bookingline'].search([('account_number', '=', account_id)])
-        total_debit = sum(transaction.dr_amount for transaction in transactions if transaction.transaction_type == 'dr')
-        total_credit = sum(
-            transaction.cr_amount for transaction in transactions if transaction.transaction_type == 'cr')
+    # def _calculate_account_balance(self, account_id, account_type):
+    #     transactions = self.env['idil.transaction_bookingline'].search([('account_number', '=', account_id)])
+    #     total_debit = sum(transaction.dr_amount for transaction in transactions if transaction.transaction_type == 'dr')
+    #     total_credit = sum(
+    #         transaction.cr_amount for transaction in transactions if transaction.transaction_type == 'cr')
+    #
+    #     if account_type in ['Asset', 'Expense']:
+    #         return total_debit - total_credit
+    #     else:  # Liability, Equity, Income
+    #         return total_credit - total_debit
 
-        if account_type in ['Asset', 'Expense']:
-            return total_debit - total_credit
-        else:  # Liability, Equity, Income
-            return total_credit - total_debit
+    # @api.model
+    # def _generate_booking_reference(self, vals):
+    #     vendor_id = 'BO'  # Assuming this is static for demonstration purposes
+    #     if vendor_id:
+    #         vendor_name = f'ReffNo#{self._get_next_transaction_number()}'
+    #         date_str = '/' + datetime.now().strftime('%d%m%Y')
+    #         day_night = '/DAY/' if datetime.now().hour < 12 else '/NIGHT/'
+    #         sequence = self.env['ir.sequence'].next_by_code('idil.transaction_booking.sequence')
+    #
+    #         # No need to slice the sequence, let's use it as is
+    #         # Ensure sequence is always provided, even as a fallback
+    #         if not sequence:
+    #             sequence = '000'
+    #
+    #         booking_ref = f"{vendor_name}{date_str}{day_night}{sequence}"
+    #     else:
+    #         # Fallback if no vendor ID is provided, just an example
+    #         sequence = self.env['ir.sequence'].next_by_code('idil.transaction_booking.sequence')
+    #         booking_ref = sequence if sequence else '000'
+    #
+    #     return booking_ref
 
-    @api.model
-    def _generate_booking_reference(self, vals):
-        vendor_id = 'BO'  # Assuming this is static for demonstration purposes
-        if vendor_id:
-            vendor_name = f'ReffNo#{self._get_next_transaction_number()}'
-            date_str = '/' + datetime.now().strftime('%d%m%Y')
-            day_night = '/DAY/' if datetime.now().hour < 12 else '/NIGHT/'
-            sequence = self.env['ir.sequence'].next_by_code('idil.transaction_booking.sequence')
+    # @api.constrains('booking_lines')
+    # def validate_transaction_balances(self):
+    #     total_debit = 0.0
+    #     total_credit = 0.0
+    #     for record in self:
+    #         if not record.booking_lines:
+    #             raise ValidationError("Transaction must have at least one booking line.")
+    #
+    #         for line in record.booking_lines:
+    #             account_id = line.account_number.id
+    #             account_name = line.account_number.name
+    #             account_type = self._get_account_type_from_number(account_id)
+    #             transaction_type = line.transaction_type
+    #             transaction_amount = line.dr_amount if transaction_type == 'dr' else line.cr_amount
+    #
+    #             # Calculate the current account balance before this transaction
+    #             current_balance = self._calculate_account_balance(account_id, account_type)
+    #
+    #             # Check if the current transaction will decrease the account balance
+    #             # For Asset and Expense accounts, a credit transaction decreases the balance
+    #             # For Liability, Equity, and Income accounts, a debit transaction decreases the balance
+    #             # Check if the current transaction will decrease the account balance
+    #             if (account_type in ['Asset', 'Expense'] and
+    #                 transaction_type == 'cr' and current_balance < transaction_amount) or \
+    #                     (account_type in ['Liability', 'Equity', 'Income'] and
+    #                      transaction_type == 'dr' and current_balance < transaction_amount):
+    #                 raise ValidationError(
+    #                     f"Account ({account_name}) does not have enough balance for this transaction. "
+    #                     f"Current balance is {current_balance}, transaction amount is {transaction_amount}."
+    #                 )
+    #             # Accumulate total debits and credits
+    #             if line.transaction_type == 'dr':
+    #                 total_debit += line.dr_amount
+    #             elif line.transaction_type == 'cr':
+    #                 total_credit += line.cr_amount
+    #
+    #         # Ensure the total of debit amounts equals the total of credit amounts
+    #         if total_debit != total_credit:
+    #             raise ValidationError("The total of debit amounts must equal the total of credit amounts.")
 
-            # No need to slice the sequence, let's use it as is
-            # Ensure sequence is always provided, even as a fallback
-            if not sequence:
-                sequence = '000'
+    # def _get_account_type_from_number(self, account_id):
+    #     # Placeholder for the actual implementation of fetching account type
+    #     account = self.env['account.account'].browse(account_id)
+    #     if not account:
+    #         return 'unknown'
+    #
+    #     account_number = account.code
+    #     if not account_number:
+    #         return 'unknown'
+    #
+    #     first_digit = account_number[0]
+    #     account_type_mapping = {
+    #         '1': 'Asset',
+    #         '2': 'Liability',
+    #         '3': 'Equity',
+    #         '4': 'Income',
+    #         '5': 'Expense',
+    #     }
+    #     return account_type_mapping.get(first_digit, 'unknown')
 
-            booking_ref = f"{vendor_name}{date_str}{day_night}{sequence}"
-        else:
-            # Fallback if no vendor ID is provided, just an example
-            sequence = self.env['ir.sequence'].next_by_code('idil.transaction_booking.sequence')
-            booking_ref = sequence if sequence else '000'
-
-        return booking_ref
-
-    @api.constrains('booking_lines')
-    def validate_transaction_balances(self):
-        total_debit = 0.0
-        total_credit = 0.0
+    @api.depends('booking_lines.dr_amount', 'booking_lines.cr_amount')
+    def _compute_debit_credit_total(self):
         for record in self:
-            if not record.booking_lines:
-                raise ValidationError("Transaction must have at least one booking line.")
+            record.debit_total = sum(line.dr_amount for line in record.booking_lines)
+            record.credit_total = sum(line.cr_amount for line in record.booking_lines)
 
-            for line in record.booking_lines:
-                account_id = line.account_number.id
-                account_type = self._get_account_type_from_number(account_id)
-                transaction_type = line.transaction_type
-                transaction_amount = line.dr_amount if transaction_type == 'dr' else line.cr_amount
-
-                # Calculate the current account balance before this transaction
-                current_balance = self._calculate_account_balance(account_id, account_type)
-
-                # Check if the current transaction will decrease the account balance
-                # For Asset and Expense accounts, a credit transaction decreases the balance
-                # For Liability, Equity, and Income accounts, a debit transaction decreases the balance
-                if (account_type in ['Asset',
-                                     'Expense'] and transaction_type == 'cr' and current_balance < transaction_amount) or \
-                        (account_type in ['Liability', 'Equity',
-                                          'Income'] and transaction_type == 'dr' and current_balance < transaction_amount):
-                    raise ValidationError(
-                        f"Account {account_id} does not have enough balance for this transaction. Current balance is {current_balance}, transaction amount is {transaction_amount}.")
-
-                # Accumulate total debits and credits
-                if line.transaction_type == 'dr':
-                    total_debit += line.dr_amount
-                elif line.transaction_type == 'cr':
-                    total_credit += line.cr_amount
-
-            # Ensure the total of debit amounts equals the total of credit amounts
-            if total_debit != total_credit:
-                raise ValidationError("The total of debit amounts must equal the total of credit amounts.")
-
-    def _get_account_type_from_number(self, account_id):
-        # Placeholder for the actual implementation of fetching account type
-        account = self.env['account.account'].browse(account_id)
-        if not account:
-            return 'unknown'
-
-        account_number = account.code
-        if not account_number:
-            return 'unknown'
-
-        first_digit = account_number[0]
-        account_type_mapping = {
-            '1': 'Asset',
-            '2': 'Liability',
-            '3': 'Equity',
-            '4': 'Income',
-            '5': 'Expense',
-        }
-        return account_type_mapping.get(first_digit, 'unknown')
+    # @api.model
+    # def default_get(self, fields_list):
+    #     res = super(TransactionBooking, self).default_get(fields_list)
+    #     if 'booking_lines' in fields_list:
+    #         default_lines = []
+    #         for _ in range(4):  # Create 4 default lines
+    #             default_lines.append((0, 0, {
+    #                 'account_number': '',
+    #                 'dr_amount': 0.0,
+    #                 'cr_amount': 0.0,
+    #                 'description': '',
+    #             }))
+    #         res.update({'booking_lines': default_lines})
+    #     return res
 
     @api.model
     def create(self, vals):
-        vals['reffno'] = self._generate_booking_reference(vals)
+        # vals['reffno'] = self._generate_booking_reference(vals)
         vals['transaction_number'] = self._get_next_transaction_number()
 
         # Only set a default trx_source_id if it's not provided in vals
@@ -277,9 +289,9 @@ class TransactionBooking(models.Model):
         transaction_record = super(TransactionBooking, self).create(vals)
 
         # Assume `vals` includes line data that has account and type information
-        if 'line_data' in vals:
-            for line in vals['line_data']:
-                self._create_transaction_line(transaction_record.id, line)
+        # if 'line_data' in vals:
+        #     for line in vals['line_data']:
+        #         self._create_transaction_line(transaction_record.id, line)
 
         return transaction_record
 
@@ -288,32 +300,32 @@ class TransactionBooking(models.Model):
                                                                              limit=1).transaction_number or 0
         return max_transaction_number + 1
 
-    def _create_transaction_line(self, transaction_id, line):
-        account_code = line.get('account_code')
-        transaction_type = line.get('transaction_type')
-        account = self.env['idil.chart.account'].search([('code', '=', account_code)], limit=1)
-        if not account:
-            _logger.error(f"Account with code {account_code} not found.")
-            return
-
-        line_vals = {
-
-            'amount': line.get('amount', 0.0),
-
-            'order_line': 0,
-            'item_id': 0,
-            'account_number': account,
-            'transaction_type': transaction_type,
-            'dr_amount': self.amount if transaction_type == 'dr' else 0,
-            'cr_amount': self.amount if transaction_type == 'cr' else 0,
-            'transaction_date': fields.Date.today(),
-            'transaction_booking_id': transaction_id,
-        }
-        try:
-            self.env['idil.transaction_bookingline'].create(line_vals)
-            _logger.info(f"Creating transaction line with values: {line_vals}")
-        except Exception as e:
-            _logger.error(f"Error creating transaction line: {e}")
+    # def _create_transaction_line(self, transaction_id, line):
+    #     account_code = line.get('account_code')
+    #     transaction_type = line.get('transaction_type')
+    #     account = self.env['idil.chart.account'].search([('code', '=', account_code)], limit=1)
+    #     if not account:
+    #         _logger.error(f"Account with code {account_code} not found.")
+    #         return
+    #
+    #     line_vals = {
+    #
+    #         'amount': line.get('amount', 0.0),
+    #
+    #         'order_line': 0,
+    #         'item_id': 0,
+    #         'account_number': account,
+    #         'transaction_type': transaction_type,
+    #         'dr_amount': self.amount if transaction_type == 'dr' else 0,
+    #         'cr_amount': self.amount if transaction_type == 'cr' else 0,
+    #         'transaction_date': fields.Date.today(),
+    #         'transaction_booking_id': transaction_id,
+    #     }
+    #     try:
+    #         self.env['idil.transaction_bookingline'].create(line_vals)
+    #         _logger.info(f"Creating transaction line with values: {line_vals}")
+    #     except Exception as e:
+    #         _logger.error(f"Error creating transaction line: {e}")
 
     def set_payment_status_paid(self):
         for record in self:
@@ -335,6 +347,11 @@ class TransactionBooking(models.Model):
                     raise UserError(
                         'The selected cash account does not have enough balance.')
 
+                # Fetch the vendor's payable account
+                vendor = self.env['idil.vendor.registration'].browse(record.vendor_id.id)
+                if not vendor.account_payable_id:
+                    raise UserError('Vendor payable account not found.')
+
                 self.env['idil.transaction_bookingline'].create({
                     'transaction_booking_id': record.id,
                     'account_number': record.cash_account_id.id,
@@ -342,12 +359,6 @@ class TransactionBooking(models.Model):
                     'cr_amount': record.amount,
                     'transaction_date': fields.Date.today(),
                 })
-
-                # Fetch the vendor's payable account
-                vendor = self.env['idil.vendor.registration'].browse(record.vendor_id.id)
-                if not vendor.account_payable_id:
-                    raise UserError('Vendor payable account not found.')
-
                 # Create transaction booking line for the vendor payable (Debit)
                 self.env['idil.transaction_bookingline'].create({
                     'transaction_booking_id': record.id,
@@ -432,9 +443,17 @@ class TransactionBookingline(models.Model):
                     SUM(dr_amount) AS dr_total,
                     SUM(cr_amount) AS cr_total
                 FROM
-                    idil_transaction_bookingline
+                    idil_transaction_bookingline tb, 
+					idil_chart_account ca,
+					idil_chart_account_subheader cb,
+					idil_chart_account_header ch
+				where tb.account_number=ca.id
+				  and ca.subheader_id=cb.id
+				  and cb.header_id=ch.id
                 GROUP BY
-                    account_number
+                    account_number,ch.code
+                having (sum(dr_amount)-sum(cr_amount))<>0
+				Order by ch.code
             """)
         result = self.env.cr.dictfetchall()
 
@@ -456,6 +475,7 @@ class TransactionBookingline(models.Model):
 
             self.env['idil.trial.balance'].create({
                 'account_number': account.id,
+                'header_name': account.header_name,
                 'dr_balance': max(dr_balance, 0),
                 'cr_balance': max(cr_balance, 0),
             })

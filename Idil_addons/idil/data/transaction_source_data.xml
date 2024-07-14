@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="trx_source_pos" model="idil.transaction.source">
+            <field name="id" eval="3"/>
+            <field name="name">Receipt</field>
+            <field name="description">Receipt</field>
+        </record>
+
+        <record id="trx_source_pos" model="idil.transaction.source">
+            <field name="id" eval="4"/>
+            <field name="name">pay_vendor</field>
+            <field name="description">Pay Vendor</field>
+        </record>
+
+         <record id="trx_source_pos" model="idil.transaction.source">
+            <field name="id" eval="5"/>
+            <field name="name">sales_order</field>
+            <field name="description">Sales Order</field>
+        </record>
+
+         <record id="trx_source_pos" model="idil.transaction.source">
+            <field name="id" eval="6"/>
+            <field name="name">PO</field>
+            <field name="description">Purchase Order</field>
+        </record>
+
+
+        <record id="trx_source_pos" model="idil.transaction.source">
+            <field name="id" eval="10"/>
+            <field name="name">POS</field>
+            <field name="description">Point of Sale</field>
+        </record>
+        <record id="trx_source_manual" model="idil.transaction.source">
+            <field name="id" eval="11"/>
+            <field name="name">Manual Transaction</field>
+            <field name="description">Manual Transaction</field>
+        </record>
+        <!-- Add more records as needed -->
+    </data>
+</odoo>

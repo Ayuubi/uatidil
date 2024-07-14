@@ -28,3 +28,4 @@ from . import Kitchen
 from . import kitchen_transfer
 from . import TrialBalance
 from . import kitchen_cook_process
+from . import journal_entry

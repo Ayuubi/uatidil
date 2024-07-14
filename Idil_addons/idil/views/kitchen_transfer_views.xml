@@ -6,6 +6,10 @@
             <field name="model">idil.kitchen.transfer</field>
             <field name="arch" type="xml">
                 <form string="Kitchen Transfer">
+                    <header>
+
+                        <field name="state" widget="statusbar" statusbar_visible="draft,processed"/>
+                    </header>
                     <sheet>
                         <group>
                             <field name="name"/>
@@ -18,8 +22,9 @@
                                 <tree editable="bottom">
                                     <field name="item_id"/>
                                     <field name="uom_id"/>
+                                    <field name="quantity_item" string="Available Item QTY" readonly="1"/>
+                                    <field name="unit_price" string="Unit Cost"/>
                                     <field name="quantity"/>
-                                    <field name="unit_price"/>
                                     <field name="total"/>
 
 

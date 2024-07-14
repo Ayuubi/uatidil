@@ -4,8 +4,11 @@
         <field name="name">trial.balance.tree</field>
         <field name="model">idil.trial.balance</field>
         <field name="arch" type="xml">
-            <tree string="Trial Balance">
+            <tree string="Trial Balance" create="false" edit="false" delete="false" class="no_selection">
+
+
                 <field name="account_number"/>
+                <field name="header_name"/>
                 <field name="label" string="Description" widget="char"/>
                 <field name="dr_balance"/>
                 <field name="cr_balance"/>

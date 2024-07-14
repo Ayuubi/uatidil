@@ -13,6 +13,7 @@ class TrialBalance(models.Model):
     _description = 'Trial Balance'
 
     account_number = fields.Many2one('idil.chart.account', string='Account Number')
+    header_name = fields.Char(string='Account Type')
     dr_balance = fields.Float(string='Dr')
     cr_balance = fields.Float(string='Cr')
 
@@ -23,9 +24,6 @@ class TrialBalance(models.Model):
         for record in self:
             if not record.account_number:
                 record.label = 'Grand Total'
-            elif record.dr_balance > 0:
-                record.label = 'Total Debit'
-            elif record.cr_balance > 0:
-                record.label = 'Total Credit'
+
             else:
                 record.label = ''

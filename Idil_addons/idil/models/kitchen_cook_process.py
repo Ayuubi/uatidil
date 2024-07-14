@@ -26,7 +26,13 @@ class KitchenCookProcess(models.Model):
             vals['name'] = self.env['ir.sequence'].next_by_code('idil.kitchen.cook.process') or _('New')
 
         process = super(KitchenCookProcess, self).create(vals)
+        process._set_transfer_data()
         return process
+
+    def write(self, vals):
+        res = super(KitchenCookProcess, self).write(vals)
+        self._set_transfer_data()
+        return res
 
     @api.onchange('kitchen_transfer_id')
     def _onchange_kitchen_transfer_id(self):
@@ -41,6 +47,19 @@ class KitchenCookProcess(models.Model):
                 }))
             self.cook_line_ids = cook_lines
 
+    def _set_transfer_data(self):
+        for process in self:
+            for cook_line in process.cook_line_ids:
+                transfer_line = self.env['idil.kitchen.transfer.line'].search([
+                    ('transfer_id', '=', process.kitchen_transfer_id.id),
+                    ('item_id', '=', cook_line.item_id.id)
+                ], limit=1)
+                if transfer_line:
+                    cook_line.write({
+                        'transfer_qty': transfer_line.quantity,
+                        'transfer_amount': transfer_line.total,
+                    })
+
     def action_process(self):
         for process in self:
             if process.state == 'processed':
@@ -53,12 +72,41 @@ class KitchenCookProcess(models.Model):
                     raise UserError(
                         _('Cooked quantity cannot be greater than transferred quantity for %s.' % line.item_id.name))
 
-            process.state = 'processed'
-            # Add any additional processing logic here
-            # For example, updating quantities of cooked items
+            # Create Transaction Booking record
+            transaction_booking = self.env['idil.transaction_booking'].create({
+                'reffno': process.name,
+                'trx_date': fields.Date.today(),
+                'amount': process.subtotal,
+                'payment_method': 'internal',  # Assuming 'internal' for this example
+                'payment_status': 'pending',
+            })
+
             for line in process.cook_line_ids:
-                item = line.item_id
-                item.cooked_quantity += line.cooked_qty
+                self.env['idil.transaction_bookingline'].create({
+                    'transaction_booking_id': transaction_booking.id,
+                    'description': f'Cooked {line.cooked_qty} of {line.item_id.name}',
+                    'item_id': line.item_id.id,
+                    'account_number': line.item_id.purchase_account_id.id,  # Assuming debit account is 1
+                    'transaction_type': 'dr',
+                    'dr_amount': line.cooked_amount,
+                    'cr_amount': 0,
+
+                    'transaction_date': fields.Date.today(),
+                })
+                self.env['idil.transaction_bookingline'].create({
+                    'transaction_booking_id': transaction_booking.id,
+                    'description': f'Cooked {line.cooked_qty} of {line.item_id.name}',
+                    'item_id': line.item_id.id,
+                    'account_number': process.kitchen_transfer_id.kitchen_id.inventory_account.id,
+                    # Use kitchen's inventory account for credit
+
+                    'transaction_type': 'cr',
+                    'cr_amount': line.cooked_amount,
+                    'dr_amount': 0,
+                    'transaction_date': fields.Date.today(),
+                })
+
+            process.state = 'processed'
 
 
 class KitchenCookLine(models.Model):
@@ -68,8 +116,8 @@ class KitchenCookLine(models.Model):
     cook_process_id = fields.Many2one('idil.kitchen.cook.process', string='Cook Process Reference', required=True,
                                       ondelete='cascade')
     item_id = fields.Many2one('idil.item', string='Item', required=True)
-    transfer_qty = fields.Float(string='Transferred Quantity', readonly=True, store=True)
-    transfer_amount = fields.Float(string='Transferred Amount', readonly=True, store=True)
+    transfer_qty = fields.Float(string='Transferred Quantity', store=True)
+    transfer_amount = fields.Float(string='Transferred Amount', store=True)
     cooked_qty = fields.Float(string='Cooked Quantity', required=True)
     unit_price = fields.Float(string='Unit Price', related='item_id.cost_price', readonly=True, store=True)
     cooked_amount = fields.Float(string='Cooked Amount', compute='_compute_cooked_amount', store=True)
@@ -81,12 +129,12 @@ class KitchenCookLine(models.Model):
         for line in self:
             line.cooked_amount = line.cooked_qty * line.unit_price
 
-    @api.constrains('cooked_qty')
-    def _check_cooked_qty(self):
-        for line in self:
-            if line.cooked_qty > line.transfer_qty:
-                raise ValidationError(
-                    _('Cooked quantity cannot be greater than transferred quantity for %s.' % line.item_id.name))
+    # @api.constrains('cooked_qty')
+    # def _check_cooked_qty(self):
+    #     for line in self:
+    #         if line.cooked_qty > line.transfer_qty:
+    #             raise ValidationError(
+    #                 _('Cooked quantity cannot be greater than transferred quantity for %s.' % line.item_id.name))
 
     @api.onchange('cooked_qty')
     def _onchange_cooked_qty(self):

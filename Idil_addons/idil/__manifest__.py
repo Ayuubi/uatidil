@@ -16,10 +16,19 @@
         'point_of_sale.assets': [
             'idil/static/src/js/pos_customer_modification.js',
         ],
+        'web.assets_backend': [
+            'idil/static/src/css/kanban.css',
+            'idil/static/src/scss/custom_styles.scss',
+
+        ],
+
     },
 
     'data': [
         'security/ir.model.access.csv',
+        'data/transaction_source_data.xml',
+
+        'data/seq_journal_entry.xml',
         'data/groups.xml',
         'data/restaurant_chart_of_accounts.xml',
         'data/customer_types.xml',  # Reference to your XML data file
@@ -66,6 +75,8 @@
         'views/kitchen_transfer_views.xml',
         'views/view_trial_balance.xml',
         'views/kitchen_cook.xml',
+        'views/transaction_booking_views.xml',
+        'views/view_journal_entry.xml',
 
         'views/menu.xml',
     ],

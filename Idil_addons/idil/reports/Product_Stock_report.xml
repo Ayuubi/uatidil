@@ -69,18 +69,4 @@
             </form>
         </field>
     </record>
-
-    <!-- Action: Defines how to view transaction bookings -->
-    <record id="action_transaction_booking" model="ir.actions.act_window">
-        <field name="name">View Transaction Booking</field>
-        <field name="res_model">idil.transaction_booking</field>
-        <field name="view_mode">tree,form</field>
-        <field name="domain">[('vendor_id', '=', False)]</field>
-        <field name="context">{'create': True, 'delete': False, 'trx_date': 'trx_date'}</field>
-        <field name="view_ids" eval="[
-            (5, 0, 0),
-            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_journal_transaction_booking_tree')}),
-            (0, 0, {'view_mode': 'form', 'view_id': ref('view_transaction_booking_form')})
-        ]"/>
-    </record>
 </odoo>

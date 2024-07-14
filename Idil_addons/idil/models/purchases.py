@@ -77,18 +77,6 @@ class PurchaseOrderLine(models.Model):
     def _get_stock_account_number(self):
         return self.item_id.asset_account_id.id
 
-    # def _prepare_transaction_values(self, transaction_number, values):
-    #
-    #     return {
-    #         'reffno': self.order_id.reffno,
-    #         'transaction_number': transaction_number,
-    #         'vendor_id': self.order_id.vendor_id.id,
-    #         'order_number': self.order_id.id,
-    #         'payment_method': self.order_id.payment_method,
-    #         'payment_status': values.get('payment_status', 'pending'),
-    #         'trx_date': fields.Date.today(),
-    #         'amount': self.amount,
-    #     }
     def _prepare_transaction_values(self, transaction_number, values):
         # Calculate the total amount of all order lines for this order
         total_amount = sum(line.amount for line in self.order_id.order_lines)

@@ -16,6 +16,7 @@ class KitchenTransfer(models.Model):
                                         tracking=True)
     transaction_booking_id = fields.Many2one('idil.transaction_booking', string='Transaction Booking', readonly=True)
     subtotal = fields.Float(string='Subtotal', compute='_compute_subtotal', store=True)
+    state = fields.Selection([('draft', 'Draft'), ('processed', 'Processed')], default='draft', tracking=True)
 
     @api.depends('transfer_line_ids.total')
     def _compute_subtotal(self):
@@ -185,6 +186,9 @@ class KitchenTransferLine(models.Model):
     quantity = fields.Float(string='Quantity', required=True)
     uom_id = fields.Many2one('idil.unit.measure', string='Unit of Measurement', related='item_id.unitmeasure_id',
                              readonly=True)
+
+    quantity_item = fields.Float(string='QTY', related='item_id.quantity', readonly=True)  # Corrected field type
+
     unit_price = fields.Float(string='Unit Price', related='item_id.cost_price', readonly=True, store=True)
     total = fields.Float(string='Total', compute='_compute_total', store=True)
 

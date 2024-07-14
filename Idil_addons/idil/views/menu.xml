@@ -78,7 +78,13 @@
               name="Create Journal Entries"
               parent="menu_idil_accounting"
               action="action_transaction_booking"
+
               sequence="2"/>
+
+    <menuitem id="menu_journal_entry"
+              name="Journal Entries"
+              parent="menu_idil_accounting"
+              action="action_journal_entry"/>
 
     <menuitem id="menu_idil_trx_source"
               name="Transaction Sources"
@@ -282,6 +288,4 @@
               parent="menu_kitchen_root"
               action="action_kitchen_cook_process"
               sequence="20"/>
-
-
 </odoo>
