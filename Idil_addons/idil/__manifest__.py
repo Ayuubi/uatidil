@@ -7,7 +7,7 @@
     'depends': ['mail', 'point_of_sale', 'web'],
     'application': True,
     'sequence': -100,
-    'author': 'TST',
+    'author': 'trn',
 
     'assets': {
         'web.assets_common': [
