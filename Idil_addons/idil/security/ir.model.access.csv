@@ -41,3 +41,4 @@ idil.access_idil_kitchen_cook_process,access_idil_kitchen_cook_process,idil.mode
 idil.access_idil_kitchen_cook_line,access_idil_kitchen_cook_line,idil.model_idil_kitchen_cook_line,base.group_user,1,1,1,1
 idil.access_idil_journal_entry,access_idil_journal_entry,idil.model_idil_journal_entry,base.group_user,1,1,1,1
 idil.access_idil_journal_entry_line,access_idil_journal_entry_line,idil.model_idil_journal_entry_line,base.group_user,1,1,1,1
+idil.access_idil_vendor_transaction,access_idil_vendor_transaction,idil.model_idil_vendor_transaction,base.group_user,1,1,1,1

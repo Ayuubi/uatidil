@@ -44,6 +44,7 @@ class PurchaseOrderLine(models.Model):
             quantity_diff = values['quantity'] - self.quantity
             self._update_item_stock(quantity_diff)
             # Check if 'amount' is being updated and if the payment method requires a balance check.
+
         return super(PurchaseOrderLine, self).write(values)
 
     @api.model
@@ -61,9 +62,28 @@ class PurchaseOrderLine(models.Model):
             self._create_transaction_line(new_transaction.id, new_transaction_number, stock_account_number, 'dr')
             self._create_transaction_line(new_transaction.id, new_transaction_number, purchase_account_number, 'cr')
 
+            # Create Vendor Transaction after creating the transaction booking and lines
+            self._create_vendor_transaction(new_transaction, values)
+
         except Exception as e:
             _logger.error(f"Error creating transaction: {e}")
             raise
+
+    def _create_vendor_transaction(self, transaction, values):
+        vendor_transaction_values = {
+            'order_number': transaction.order_number,
+            'transaction_number': transaction.transaction_number,
+            'transaction_date': transaction.trx_date,
+            'vendor_id': transaction.vendor_id.id,
+            'amount': transaction.amount,
+            'remaining_amount': transaction.amount,
+            'paid_amount': 0,
+            'payment_method': transaction.payment_method,
+            'reffno': transaction.reffno,
+            'transaction_booking_id': transaction.id,
+            'payment_status': "pending",
+        }
+        self.env['idil.vendor_transaction'].create(vendor_transaction_values)
 
     def _sum_order_line_amounts(self):
         # Corrected to use the proper field name 'order_lines'
@@ -90,6 +110,8 @@ class PurchaseOrderLine(models.Model):
             'payment_status': values.get('payment_status', 'pending'),
             'trx_date': fields.Date.today(),
             'amount': total_amount,  # Use the total amount of all lines here
+            'remaining_amount': total_amount,
+            'amount_paid': 0,
         }
 
     def _create_transaction_record(self, transaction_values):

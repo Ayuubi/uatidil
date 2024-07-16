@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_vendor_transaction_tree" model="ir.ui.view">
+        <field name="name">vendor.transaction.tree</field>
+        <field name="model">idil.vendor_transaction</field>
+        <field name="arch" type="xml">
+            <tree string="Vendor Transactions">
+                <field name="transaction_date"/>
+                <field name="reffno"/>
+                <field name="transaction_number"/>
+                <field name="order_number"/>
+                <field name="vendor_id"/>
+                <field name="vendor_name"/>
+                <field name="vendor_phone" optional="show"/>
+                <field name="vendor_email" optional="hide"/>
+                <field name="amount"/>
+                <field name="paid_amount"/>
+                <field name="remaining_amount"/>
+                <field name="payment_method" optional="hide"/>
+                <field name="payment_status" optional="show"/>
+
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_vendor_transaction_form" model="ir.ui.view">
+        <field name="name">vendor.transaction.form</field>
+        <field name="model">idil.vendor_transaction</field>
+        <field name="arch" type="xml">
+            <form string="Vendor Transaction">
+                <sheet>
+                    <group>
+                        <field name="order_number"/>
+                        <field name="transaction_number"/>
+                        <field name="transaction_date"/>
+                        <field name="vendor_id"/>
+                        <field name="vendor_name"/>
+                        <field name="vendor_phone"/>
+                        <field name="vendor_email"/>
+                    </group>
+                    <group>
+
+                        <field name="cash_account_id"/>
+                        <field name="amount" readonly="1"/>
+                        <field name="paid_amount" readonly="1"/>
+                        <field name="remaining_amount" readonly="1"/>
+                        <field name="amount_paying"/>
+
+
+                        <field name="payment_method"/>
+                        <field name="reffno"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_vendor_transaction_search" model="ir.ui.view">
+        <field name="name">vendor.transaction.search</field>
+        <field name="model">idil.vendor_transaction</field>
+        <field name="arch" type="xml">
+            <search string="Vendor Transactions">
+                <field name="order_number"/>
+                <field name="transaction_number"/>
+                <field name="transaction_date"/>
+                <field name="vendor_id"/>
+                <field name="amount"/>
+                <field name="payment_method"/>
+                <field name="reffno"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_vendor_transaction" model="ir.actions.act_window">
+        <field name="name">Vendor Transactions</field>
+        <field name="res_model">idil.vendor_transaction</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click to create a new vendor transaction.
+            </p>
+        </field>
+    </record>
+
+</odoo>

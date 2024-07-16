@@ -50,7 +50,7 @@ class TransactionBooking(models.Model):
     )
     amount = fields.Float(string='Amount', compute='_compute_amount', store=True)
     amount_paid = fields.Float(string='Amount Paid')
-    remaining_amount = fields.Float(string='Remaining Amount', compute='_compute_remaining_amount', store=True)
+    remaining_amount = fields.Float(string='Remaining Amount', store=True)
 
     debit_total = fields.Float(string='Total Debit', compute='_compute_debit_credit_total', store=True)
     credit_total = fields.Float(string='Total Credit', compute='_compute_debit_credit_total', store=True)
@@ -66,12 +66,15 @@ class TransactionBooking(models.Model):
         domain=[('account_type', '=', 'cash')],
         help="Select the cash account for transactions."
     )
+    vendor_transactions = fields.One2many(
+        'idil.vendor_transaction', 'transaction_booking_id', string='Vendor Transactions', ondelete='cascade'
+    )
 
     # Code for sales receipt ------------------------------------
-    @api.depends('amount', 'amount_paid')
-    def _compute_remaining_amount(self):
-        for record in self:
-            record.remaining_amount = record.amount - record.amount_paid
+    # @api.depends('amount', 'amount_paid')
+    # def _compute_remaining_amount(self):
+    #     for record in self:
+    #         record.remaining_amount = record.amount - record.amount_paid
 
     @api.constrains('amount_paid')
     def _check_amount_paid(self):
@@ -281,10 +284,10 @@ class TransactionBooking(models.Model):
         vals['transaction_number'] = self._get_next_transaction_number()
 
         # Only set a default trx_source_id if it's not provided in vals
-        if 'trx_source_id' not in vals:
-            default_trx_source_id = self.env['idil.transaction.source'].search([('name', '=', 'manual_booking')],
-                                                                               limit=1).id
-            vals['trx_source_id'] = default_trx_source_id
+        # if 'trx_source_id' not in vals:
+        #     default_trx_source_id = self.env['idil.transaction.source'].search([('name', '=', 'manual_booking')],
+        #                                                                        limit=1).id
+        #     vals['trx_source_id'] = default_trx_source_id
 
         transaction_record = super(TransactionBooking, self).create(vals)
 
@@ -327,50 +330,50 @@ class TransactionBooking(models.Model):
     #     except Exception as e:
     #         _logger.error(f"Error creating transaction line: {e}")
 
-    def set_payment_status_paid(self):
-        for record in self:
-            record['trx_source_id'] = self.env['idil.transaction.source'].search([('name', '=', 'pay_vendor')],
-                                                                                 limit=1).id
-            if record.payment_status == 'pending':
-                if not record.cash_account_id:
-                    raise UserError('Please select a cash account before setting the payment status to paid.')
-
-                transactions = self.env['idil.transaction_bookingline'].search([
-                    ('account_number', '=', record.cash_account_id.id)
-                ])
-
-                total_debit = sum(transactions.mapped('dr_amount'))
-                total_credit = sum(transactions.mapped('cr_amount'))
-                current_balance = total_debit - total_credit
-
-                if current_balance < record.amount:
-                    raise UserError(
-                        'The selected cash account does not have enough balance.')
-
-                # Fetch the vendor's payable account
-                vendor = self.env['idil.vendor.registration'].browse(record.vendor_id.id)
-                if not vendor.account_payable_id:
-                    raise UserError('Vendor payable account not found.')
-
-                self.env['idil.transaction_bookingline'].create({
-                    'transaction_booking_id': record.id,
-                    'account_number': record.cash_account_id.id,
-                    'transaction_type': 'cr',
-                    'cr_amount': record.amount,
-                    'transaction_date': fields.Date.today(),
-                })
-                # Create transaction booking line for the vendor payable (Debit)
-                self.env['idil.transaction_bookingline'].create({
-                    'transaction_booking_id': record.id,
-                    'account_number': vendor.account_payable_id.id,
-                    'transaction_type': 'dr',
-                    'dr_amount': record.amount,
-                    'transaction_date': fields.Date.today(),
-                })
-
-                record.payment_status = 'paid'
-            else:
-                raise UserError('The payment status is already paid or not applicable.')
+    # def set_payment_status_paid(self):
+    #     for record in self:
+    #         record['trx_source_id'] = self.env['idil.transaction.source'].search([('name', '=', 'pay_vendor')],
+    #                                                                              limit=1).id
+    #         if record.payment_status == 'pending':
+    #             if not record.cash_account_id:
+    #                 raise UserError('Please select a cash account before setting the payment status to paid.')
+    #
+    #             transactions = self.env['idil.transaction_bookingline'].search([
+    #                 ('account_number', '=', record.cash_account_id.id)
+    #             ])
+    #
+    #             total_debit = sum(transactions.mapped('dr_amount'))
+    #             total_credit = sum(transactions.mapped('cr_amount'))
+    #             current_balance = total_debit - total_credit
+    #
+    #             if current_balance < record.amount:
+    #                 raise UserError(
+    #                     'The selected cash account does not have enough balance.')
+    #
+    #             # Fetch the vendor's payable account
+    #             vendor = self.env['idil.vendor.registration'].browse(record.vendor_id.id)
+    #             if not vendor.account_payable_id:
+    #                 raise UserError('Vendor payable account not found.')
+    #
+    #             self.env['idil.transaction_bookingline'].create({
+    #                 'transaction_booking_id': record.id,
+    #                 'account_number': record.cash_account_id.id,
+    #                 'transaction_type': 'cr',
+    #                 'cr_amount': record.amount,
+    #                 'transaction_date': fields.Date.today(),
+    #             })
+    #             # Create transaction booking line for the vendor payable (Debit)
+    #             self.env['idil.transaction_bookingline'].create({
+    #                 'transaction_booking_id': record.id,
+    #                 'account_number': vendor.account_payable_id.id,
+    #                 'transaction_type': 'dr',
+    #                 'dr_amount': record.amount,
+    #                 'transaction_date': fields.Date.today(),
+    #             })
+    #
+    #             record.payment_status = 'paid'
+    #         else:
+    #             raise UserError('The payment status is already paid or not applicable.')
 
     def action_add_default_lines(self):
         for record in self:
@@ -391,12 +394,12 @@ class TransactionBooking(models.Model):
                 'description': 'Default credit line',
             })
 
-    @api.depends('booking_lines.dr_amount', 'booking_lines.cr_amount', 'trx_source_id')
-    def _compute_amount(self):
-        for record in self:
-            if record.trx_source_id.name != 'pay_vendor' and record.trx_source_id.name != 'sales_order':
-                total_amount = sum(line.dr_amount for line in record.booking_lines)
-                record.amount = total_amount
+    # @api.depends('booking_lines.dr_amount', 'booking_lines.cr_amount', 'trx_source_id')
+    # def _compute_amount(self):
+    #     for record in self:
+    #         if record.trx_source_id.name != 'pay_vendor' and record.trx_source_id.name != 'sales_order':
+    #             total_amount = sum(line.dr_amount for line in record.booking_lines)
+    #             record.amount = total_amount
 
     def update_related_booking_lines(self):
         for line in self.booking_lines:

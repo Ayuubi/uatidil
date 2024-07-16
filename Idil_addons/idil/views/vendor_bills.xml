@@ -48,8 +48,6 @@
                                 <field name="amount" readonly="1"/>
 
                             </group>
-                            <button name="set_payment_status_paid" type="object" string="PAY" class="oe_highlight"
-                                    invisible=" payment_status != 'pending' "/>
                         </page>
 
                     </notebook>
@@ -59,16 +57,16 @@
     </record>
 
 
-     <record id="action_pay_transaction_booking" model="ir.actions.act_window">
-            <field name="name">View Transaction Booking</field>
-            <field name="res_model">idil.transaction_booking</field>
-            <field name="view_mode">tree,form</field>
-              <field name="domain">[('payment_status', '=', 'pending'), ('payment_method', '=', 'ap')]</field>
-            <field name="context">{'create': False, 'delete': False}</field>
-            <field name="view_ids" eval="[(5, 0, 0),
+    <record id="action_pay_transaction_booking" model="ir.actions.act_window">
+        <field name="name">View Transaction Booking</field>
+        <field name="res_model">idil.transaction_booking</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('payment_status', '=', 'pending'), ('payment_method', '=', 'ap')]</field>
+        <field name="context">{'create': False, 'delete': False}</field>
+        <field name="view_ids" eval="[(5, 0, 0),
                                    (0, 0, {'view_mode': 'tree', 'view_id': ref('view_transaction_booking_tree')}),
                                    (0, 0, {'view_mode': 'form', 'view_id': ref('view_idil_transaction_booking_form')})]"/>
-        </record>
+    </record>
     <!-- The action definition remains the same if it should open the form view -->
 </odoo>
 

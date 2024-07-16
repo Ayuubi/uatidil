@@ -1,32 +1,69 @@
 from odoo import models, fields, api
+import logging
 
 
 class ModelA(models.Model):
     _name = 'model.a'
     _description = 'Model A'
 
+    _logger = logging.getLogger(__name__)
+
     # Other fields definition
 
     @api.model
     def delete_other_models_data(self, *args, **kwargs):
-        # Add the logic to delete records from ModelB, ModelC, etc.
-        self.env['idil.purchase_order.line'].search([]).unlink()
-        self.env['idil.purchase_order'].search([]).unlink()
+        models_to_delete = [
+            'idil.vendor_transaction',
 
-        self.env['idil.salesperson.place.order.line'].search([]).unlink()
-        self.env['idil.salesperson.place.order'].search([]).unlink()
+            'idil.manufacturing.order.line',
+            'idil.manufacturing.order',
 
-        self.env['idil.sale.order.line'].search([]).unlink()
-        self.env['idil.sale.order'].search([]).unlink()
+            'idil.purchase_order.line',
+            'idil.purchase_order',
 
-        self.env['idil.transaction_bookingline'].search([]).unlink()
-        self.env['idil.transaction_booking'].search([]).unlink()
+            'idil.salesperson.place.order.line',
+            'idil.salesperson.place.order',
 
-        self.env['idil.manufacturing.order.line'].search([]).unlink()
-        self.env['idil.manufacturing.order'].search([]).unlink()
+            'idil.sale.order.line',
+            'idil.sale.order',
 
-        # Correct POS model names
-        # self.env['pos.payment'].search([]).unlink()
-        # self.env['pos.order'].search([]).unlink()
-        # self.env['pos.session'].search([]).unlink()
-        # self.env['pos.config'].search([]).unlink()
+            'idil.kitchen.cook.line',
+            'idil.kitchen.cook.process',
+
+            'idil.kitchen.transfer.line',
+            'idil.kitchen.transfer',
+
+            'idil.journal.entry.line',
+            'idil.journal.entry',
+
+            'idil.transaction_bookingline',
+            'idil.transaction_booking',
+
+            # 'pos.payment',
+            # 'pos.order',
+            # 'pos.session',
+            # 'pos.config',
+        ]
+
+        deletion_summary = []
+
+        for model_name in models_to_delete:
+            try:
+                records = self.env[model_name].search([])
+                if records:
+                    record_count = len(records)
+                    records.unlink()
+                    message = f"Successfully deleted {record_count} records from {model_name}."
+                    self._logger.info(message)
+                    deletion_summary.append(message)
+                else:
+                    message = f"No records found in {model_name} to delete."
+                    self._logger.info(message)
+                    deletion_summary.append(message)
+            except Exception as e:
+                message = f"Error deleting records from {model_name}: {e}"
+                self._logger.error(message)
+                deletion_summary.append(message)
+
+        # Join the summary into a single string to return
+        return "\n".join(deletion_summary)

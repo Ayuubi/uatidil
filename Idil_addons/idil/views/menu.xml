@@ -121,6 +121,13 @@
               sequence="3"
               parent="menu_purchase"/>
 
+    <menuitem id="menu_vendor_transaction"
+              name="Vendor Transactions"
+              parent="menu_purchase"
+              action="action_vendor_transaction"
+              sequence="4"/>
+
+
     <menuitem id="Manufacturing"
               name="Manufacturing"
               parent="menu_idil_home"

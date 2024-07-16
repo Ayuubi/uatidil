@@ -100,9 +100,9 @@ class Account(models.Model):
             if account.code:
                 first_digit = account.code[0]
                 # Determine sign based on the first digit of the account code
-                if first_digit in ['1', '5']:  # Assuming 1 and 5 represent Dr, adjust as needed
+                if first_digit in ['1', '5', '6', '8']:  # Dr accounts
                     account.sign = 'Dr'
-                elif first_digit in ['2', '3', '4']:
+                elif first_digit in ['2', '3', '4', '7', '9']:  # Cr accounts
                     account.sign = 'Cr'
                 else:
                     account.sign = False
@@ -117,7 +117,7 @@ class Account(models.Model):
                 # Determine financial reporting based on the first digit of the account code
                 if first_digit in ['1', '2', '3']:  # Assuming 1, 2, 3 represent BS, adjust as needed
                     account.FinancialReporting = 'BS'
-                elif first_digit in ['4', '5']:  # Assuming 4, 5 represent PL, adjust as needed
+                elif first_digit in ['4', '5', '6', '7', '8', '9']:  # Assuming 4, 5 represent PL, adjust as needed
                     account.FinancialReporting = 'PL'
                 else:
                     account.FinancialReporting = False

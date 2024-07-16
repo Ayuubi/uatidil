@@ -47,8 +47,9 @@ class item(models.Model):
         help='Account to report purchases of this item',
         required=True,
         tracking=True,
-        domain="[('code', 'like', '5')]"  # Domain to filter accounts starting with '5'
+        domain="[('account_type', 'like', 'COGS')]"  # Corrected domain structure
     )
+
     sales_account_id = fields.Many2one(
         'idil.chart.account',
         string='Sales Account',

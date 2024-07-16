@@ -77,6 +77,7 @@
         'views/kitchen_cook.xml',
         'views/transaction_booking_views.xml',
         'views/view_journal_entry.xml',
+        'views/vendor_transaction_views.xml',
 
         'views/menu.xml',
     ],
