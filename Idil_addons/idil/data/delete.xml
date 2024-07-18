@@ -7,6 +7,10 @@
             <form string="Model A">
                 <header>
                     <button string="Delete Data" type="object" name="delete_other_models_data" class="oe_highlight"/>
+                    <button string="Delete SetUP" type="object" name="delete_other_models_setup"
+                            class="oe_highlight btn-danger"/>
+
+
                     <!-- oe_highlight gives the button a prominent style -->
                 </header>
                 <!-- Your form fields here -->

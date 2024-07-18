@@ -437,6 +437,7 @@ class TransactionBookingline(models.Model):
     dr_amount = fields.Float(string='Debit Amount')
     cr_amount = fields.Float(string='Credit Amount')
     transaction_date = fields.Date(string='Transaction Date', default=lambda self: fields.Date.today())
+    vendor_payment_id = fields.Many2one('idil.vendor_payment', string='Vendor Payment', ondelete='cascade')
 
     @api.model
     def compute_trial_balance(self):

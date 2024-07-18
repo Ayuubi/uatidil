@@ -30,3 +30,5 @@ from . import TrialBalance
 from . import kitchen_cook_process
 from . import journal_entry
 from . import VendorTransaction
+from . import VendorPayment
+

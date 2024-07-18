@@ -45,6 +45,7 @@ class VendorTransaction(models.Model):
     transaction_booking_id = fields.Many2one(
         'idil.transaction_booking', string='Transaction Booking', ondelete='cascade'
     )
+    payment_ids = fields.One2many('idil.vendor_payment', 'vendor_transaction_id', string='Vendor Payments')
 
     def write(self, vals):
         for record in self:
@@ -60,7 +61,8 @@ class VendorTransaction(models.Model):
 
         for record in self:
             if 'amount_paying' in vals:
-                record._update_booking_payment(vals['amount_paying'])
+                payment_id = record._create_vendor_payment(vals['amount_paying'])
+                record._update_booking_payment(vals['amount_paying'], payment_id)
 
         return res
 
@@ -74,14 +76,18 @@ class VendorTransaction(models.Model):
         _logger.debug(f"Available balance: {available_balance}, Paid amount: {paid_amount}")
         return available_balance >= paid_amount
 
-    def _update_booking_payment(self, new_paid_amount):
+    def _update_booking_payment(self, new_paid_amount, payment_id):
         if self.transaction_booking_id:
             previous_paid_amount = self.transaction_booking_id.amount_paid
             updated_paid_amount = previous_paid_amount + new_paid_amount
-            self.transaction_booking_id.amount_paid = updated_paid_amount
+            # self.transaction_booking_id.amount_paid = updated_paid_amount
 
             remaining_amount = self.transaction_booking_id.amount - updated_paid_amount
-            self.transaction_booking_id.remaining_amount = remaining_amount
+            # self.transaction_booking_id.remaining_amount = remaining_amount
+            self.transaction_booking_id.write({
+                'amount_paid': updated_paid_amount,
+                'remaining_amount': self.transaction_booking_id.amount - updated_paid_amount
+            })
 
             # Use vendor's account payable for the debit transaction
             account_payable_id = self.vendor_id.account_payable_id.id
@@ -93,7 +99,8 @@ class VendorTransaction(models.Model):
                 'transaction_type': 'dr',
                 'dr_amount': new_paid_amount,
                 'cr_amount': 0,
-                'transaction_date': fields.Date.today()
+                'transaction_date': fields.Date.today(),
+                'vendor_payment_id': payment_id
             })
 
             # Create the credit line
@@ -103,7 +110,8 @@ class VendorTransaction(models.Model):
                 'transaction_type': 'cr',
                 'cr_amount': new_paid_amount,
                 'dr_amount': 0,
-                'transaction_date': fields.Date.today()
+                'transaction_date': fields.Date.today(),
+                'vendor_payment_id': payment_id
             })
 
             # Recompute remaining amount after booking lines are created
@@ -118,7 +126,18 @@ class VendorTransaction(models.Model):
 
             if remaining_amount == 0:
                 self.transaction_booking_id.payment_status = 'paid'
+                self.payment_status = 'paid'
             elif updated_paid_amount == 0:
                 self.transaction_booking_id.payment_status = 'pending'
+                self.payment_status = 'pending'
             else:
                 self.transaction_booking_id.payment_status = 'partial_paid'
+                self.payment_status = 'partial_paid'
+
+    def _create_vendor_payment(self, amount_paid):
+        vendor_payment = self.env['idil.vendor_payment'].create({
+            'vendor_id': self.vendor_id.id,
+            'vendor_transaction_id': self.id,
+            'amount_paid': amount_paid,
+        })
+        return vendor_payment.id

@@ -76,12 +76,14 @@ class PurchaseOrderLine(models.Model):
             'transaction_date': transaction.trx_date,
             'vendor_id': transaction.vendor_id.id,
             'amount': transaction.amount,
-            'remaining_amount': transaction.amount,
-            'paid_amount': 0,
+            # 'remaining_amount': transaction.amount,
+            # 'paid_amount': 0,
+            'remaining_amount': 0 if transaction.payment_method == 'cash' else transaction.amount,
+            'paid_amount': transaction.amount if transaction.payment_method == 'cash' else 0,
             'payment_method': transaction.payment_method,
             'reffno': transaction.reffno,
             'transaction_booking_id': transaction.id,
-            'payment_status': "pending",
+            'payment_status': "paid" if transaction.payment_method == 'cash' else "pending",
         }
         self.env['idil.vendor_transaction'].create(vendor_transaction_values)
 
@@ -107,11 +109,12 @@ class PurchaseOrderLine(models.Model):
             'vendor_id': self.order_id.vendor_id.id,
             'order_number': self.order_id.id,
             'payment_method': self.order_id.payment_method,
-            'payment_status': values.get('payment_status', 'pending'),
+            'payment_status': "paid" if self.order_id.payment_method == 'cash' else 'pending',
             'trx_date': fields.Date.today(),
             'amount': total_amount,  # Use the total amount of all lines here
-            'remaining_amount': total_amount,
-            'amount_paid': 0,
+            # 'remaining_amount': total_amount,
+            'remaining_amount': 0 if self.order_id.payment_method == 'cash' else total_amount,
+            'amount_paid': total_amount if self.order_id.payment_method == 'cash' else 0,
         }
 
     def _create_transaction_record(self, transaction_values):

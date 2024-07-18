@@ -9,5 +9,4 @@ class itemcategory(models.Model):
     name = fields.Char(string='name', required=True, tracking=True)
     description = fields.Char(string='description', tracking=True)
 
-
 # Define a display_name field to represent the name of the type
