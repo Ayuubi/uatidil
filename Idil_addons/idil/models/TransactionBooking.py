@@ -70,6 +70,9 @@ class TransactionBooking(models.Model):
         'idil.vendor_transaction', 'transaction_booking_id', string='Vendor Transactions', ondelete='cascade'
     )
 
+    # Add a Many2one field to link to PurchaseOrder
+    purchase_order_id = fields.Many2one('idil.purchase_order', string='Linked Purchase Order', ondelete='cascade')
+
     # Code for sales receipt ------------------------------------
     # @api.depends('amount', 'amount_paid')
     # def _compute_remaining_amount(self):

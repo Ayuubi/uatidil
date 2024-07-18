@@ -86,7 +86,14 @@ class JournalEntry(models.Model):
                             _('Insufficient funds in account ( %s ) for debit amount %s. '
                               'The current account balance is %s.') % (account.name, line.debit, current_balance))
 
+    def get_manual_transaction_source_id(self):
+        trx_source = self.env['idil.transaction.source'].search([('name', '=', 'Manual Transaction')], limit=1)
+        if not trx_source:
+            raise ValidationError(_('Transaction source "Manual Transaction" not found.'))
+        return trx_source.id
+
     def create_transaction_booking(self):
+        trx_source_id = self.get_manual_transaction_source_id()
         for entry in self:
             # Remove existing transaction bookings
             self.env['idil.transaction_booking'].search([('journal_entry_id', '=', entry.id)]).unlink()
@@ -101,7 +108,7 @@ class JournalEntry(models.Model):
                 'credit_total': entry.total_credit,
                 'payment_method': "other",
                 'payment_status': "paid",
-                'trx_source_id': 11,
+                'trx_source_id': trx_source_id,
 
                 'journal_entry_id': entry.id,  # Link to the journal entry
             }

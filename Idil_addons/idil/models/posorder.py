@@ -110,7 +110,15 @@ class PosOrder(models.Model):
             self.create_transaction_booking_lines()
         return True
 
+    def get_manual_transaction_source_id(self):
+        trx_source = self.env['idil.transaction.source'].search([('name', '=', 'Point of Sale')], limit=1)
+        if not trx_source:
+            raise ValidationError(_('Transaction source "Point of Sale" not found.'))
+        return trx_source.id
+
     def create_transaction_booking(self):
+        trx_source_id = self.get_manual_transaction_source_id()
+
         for order in self:
             payment_methods = self.determine_payment_methods(order)
             payment_method_id = next(iter(payment_methods))  # Get one payment method ID
@@ -119,7 +127,7 @@ class PosOrder(models.Model):
                 transaction_booking = self.env['idil.transaction_booking'].with_context(skip_validations=True).create({
                     'transaction_number': order.id,
                     'order_number': order.name,
-                    'trx_source_id': 10,
+                    'trx_source_id': trx_source_id,
                     'payment_method': 'other',
                     'pos_payment_method': payment_method_id,
                     'payment_status': 'paid' if order.amount_total == order.amount_paid else 'partial_paid',

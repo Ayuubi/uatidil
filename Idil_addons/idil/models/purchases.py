@@ -1,9 +1,7 @@
 import re
 from datetime import datetime
-
-from odoo import models, fields, api, exceptions
 import logging
-
+from odoo import models, fields, exceptions, api, _
 from odoo.exceptions import ValidationError
 
 _logger = logging.getLogger(__name__)
@@ -99,7 +97,14 @@ class PurchaseOrderLine(models.Model):
     def _get_stock_account_number(self):
         return self.item_id.asset_account_id.id
 
+    def get_manual_transaction_source_id(self):
+        trx_source = self.env['idil.transaction.source'].search([('name', '=', 'Purchase Order')], limit=1)
+        if not trx_source:
+            raise ValidationError(_('Transaction source "Purchase Order" not found.'))
+        return trx_source.id
+
     def _prepare_transaction_values(self, transaction_number, values):
+        trx_source_id = self.get_manual_transaction_source_id()
         # Calculate the total amount of all order lines for this order
         total_amount = sum(line.amount for line in self.order_id.order_lines)
 
@@ -109,6 +114,8 @@ class PurchaseOrderLine(models.Model):
             'vendor_id': self.order_id.vendor_id.id,
             'order_number': self.order_id.id,
             'payment_method': self.order_id.payment_method,
+            'trx_source_id': trx_source_id,
+            'purchase_order_id': self.order_id.id,
             'payment_status': "paid" if self.order_id.payment_method == 'cash' else 'pending',
             'trx_date': fields.Date.today(),
             'amount': total_amount,  # Use the total amount of all lines here
@@ -138,11 +145,6 @@ class PurchaseOrderLine(models.Model):
             })
             return existing_transaction
         else:
-
-            # Set the transaction source manually to "PO"
-
-            transaction_values['trx_source_id'] = self.env['idil.transaction.source'].search([('name', '=', 'PO')],
-                                                                                             limit=1).id
 
             # If no existing transaction, create a new one
             return self.env['idil.transaction_booking'].create(transaction_values)

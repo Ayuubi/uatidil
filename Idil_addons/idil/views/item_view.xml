@@ -128,9 +128,7 @@
                                     <field name="min"/>
                                     <field name="cost_price" string="Cost Price"/>
                                 </group>
-                                <group>
-                                    <field name="allergens"/>
-                                </group>
+
                             </group>
                         </page>
                         <page string="Additional Information">

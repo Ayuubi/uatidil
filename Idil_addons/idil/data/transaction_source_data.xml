@@ -1,40 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <data>
-        <record id="trx_source_pos" model="idil.transaction.source">
-            <field name="id" eval="3"/>
+        <record id="trx_source_receipt" model="idil.transaction.source">
             <field name="name">Receipt</field>
-            <field name="description">Receipt</field>
+            <field name="description">Transaction for receiving payments</field>
+        </record>
+
+        <record id="trx_source_pay_vendor" model="idil.transaction.source">
+            <field name="name">Pay Vendor</field>
+            <field name="description">Transaction for vendor payments</field>
+        </record>
+
+        <record id="trx_source_sales_order" model="idil.transaction.source">
+            <field name="name">Sales Order</field>
+            <field name="description">Transaction for sales orders</field>
+        </record>
+
+        <record id="trx_source_purchase_order" model="idil.transaction.source">
+            <field name="name">Purchase Order</field>
+            <field name="description">Transaction for purchase orders</field>
         </record>
 
         <record id="trx_source_pos" model="idil.transaction.source">
-            <field name="id" eval="4"/>
-            <field name="name">pay_vendor</field>
-            <field name="description">Pay Vendor</field>
+            <field name="name">Point of Sale</field>
+            <field name="description">Transaction for point of sale operations</field>
         </record>
 
-         <record id="trx_source_pos" model="idil.transaction.source">
-            <field name="id" eval="5"/>
-            <field name="name">sales_order</field>
-            <field name="description">Sales Order</field>
-        </record>
-
-         <record id="trx_source_pos" model="idil.transaction.source">
-            <field name="id" eval="6"/>
-            <field name="name">PO</field>
-            <field name="description">Purchase Order</field>
-        </record>
-
-
-        <record id="trx_source_pos" model="idil.transaction.source">
-            <field name="id" eval="10"/>
-            <field name="name">POS</field>
-            <field name="description">Point of Sale</field>
-        </record>
         <record id="trx_source_manual" model="idil.transaction.source">
-            <field name="id" eval="11"/>
             <field name="name">Manual Transaction</field>
-            <field name="description">Manual Transaction</field>
+            <field name="description">Manual transaction entry</field>
         </record>
         <!-- Add more records as needed -->
     </data>
