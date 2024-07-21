@@ -107,12 +107,13 @@
                 <!-- Account Fields -->
                 <field name="name"/>
                 <field name="code"/>
-                <field name="sign"/>
-                <field name="FinancialReporting"/>
-                <field name="subheader_code"/>
-                <field name="subheader_name"/>
-                <field name="header_code"/>
-                <field name="header_name"/>
+                <field name="sign" optional="show"/>
+                <field name="FinancialReporting" optional="show"/>
+                <field name="currency_id"/>
+                <field name="subheader_code" optional="show"/>
+                <field name="subheader_name" optional="show"/>
+                <field name="header_code" optional="show"/>
+                <field name="header_name" optional="show"/>
 
             </tree>
         </field>
@@ -127,9 +128,15 @@
                 <sheet>
                     <group>
                         <group>
-                            <field name="name"/>
-                            <field name="code"/>
-                            <field name="account_type"/>
+                            <group>
+                                <field name="name"/>
+                                <field name="code"/>
+                                <field name="currency_id"/>
+                            </group>
+                            <group>
+                                <field name="account_type"/>
+                            </group>
+
                         </group>
                         <group>
                             <field name="sign" widget="icon" options='{"icon": "fa-book"}'/>

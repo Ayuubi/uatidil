@@ -90,6 +90,7 @@
             <field name="sign">Dr</field>
             <field name="FinancialReporting">BS</field>
             <field name="account_type">cash</field>
+            <field name="currency_id" ref="base.SOS"/>
         </record>
         <record id="account_bank_account" model="idil.chart.account">
             <field name="code">100102</field>
@@ -98,6 +99,7 @@
             <field name="sign">Dr</field>
             <field name="FinancialReporting">BS</field>
             <field name="account_type">bank_transfer</field>
+            <field name="currency_id" ref="base.SOS"/>
         </record>
         <record id="account_food_inventory" model="idil.chart.account">
             <field name="code">100201</field>
@@ -105,6 +107,7 @@
             <field name="subheader_id" ref="subheader_inventory"/>
             <field name="sign">Dr</field>
             <field name="FinancialReporting">BS</field>
+            <field name="currency_id" ref="base.SOS"/>
         </record>
         <record id="account_supplies_inventory" model="idil.chart.account">
             <field name="code">100202</field>
@@ -112,6 +115,7 @@
             <field name="subheader_id" ref="subheader_inventory"/>
             <field name="sign">Dr</field>
             <field name="FinancialReporting">BS</field>
+            <field name="currency_id" ref="base.SOS"/>
         </record>
 
         <!-- Accounts for Liabilities -->
@@ -122,6 +126,7 @@
             <field name="sign">Cr</field>
             <field name="FinancialReporting">BS</field>
             <field name="account_type">payable</field>
+            <field name="currency_id" ref="base.SOS"/>
         </record>
         <record id="account_short_term_loan" model="idil.chart.account">
             <field name="code">200201</field>
@@ -129,6 +134,7 @@
             <field name="subheader_id" ref="subheader_loans"/>
             <field name="sign">Cr</field>
             <field name="FinancialReporting">BS</field>
+            <field name="currency_id" ref="base.SOS"/>
         </record>
         <record id="account_long_term_loan" model="idil.chart.account">
             <field name="code">200202</field>
@@ -136,6 +142,7 @@
             <field name="subheader_id" ref="subheader_loans"/>
             <field name="sign">Cr</field>
             <field name="FinancialReporting">BS</field>
+            <field name="currency_id" ref="base.SOS"/>
         </record>
 
         <!-- Accounts for Owner's Equity -->
@@ -144,12 +151,14 @@
             <field name="name">Owner's Capital</field>
             <field name="subheader_id" ref="subheader_capital"/>
             <field name="sign">Cr</field>
+            <field name="currency_id" ref="base.SOS"/>
         </record>
         <record id="account_retained_earnings" model="idil.chart.account">
             <field name="code">300201</field>
             <field name="name">Retained Earnings</field>
             <field name="subheader_id" ref="subheader_retained_earnings"/>
             <field name="sign">Cr</field>
+            <field name="currency_id" ref="base.SOS"/>
         </record>
 
         <!-- Accounts for Income -->
@@ -159,6 +168,7 @@
             <field name="subheader_id" ref="subheader_sales"/>
             <field name="sign">Cr</field>
             <field name="FinancialReporting">PL</field>
+            <field name="currency_id" ref="base.SOS"/>
         </record>
         <record id="account_beverage_sales" model="idil.chart.account">
             <field name="code">400102</field>
@@ -166,6 +176,7 @@
             <field name="subheader_id" ref="subheader_sales"/>
             <field name="sign">Cr</field>
             <field name="FinancialReporting">PL</field>
+            <field name="currency_id" ref="base.SOS"/>
         </record>
 
         <!-- Accounts for Expenses -->
@@ -176,6 +187,7 @@
             <field name="sign">Dr</field>
             <field name="FinancialReporting">PL</field>
             <field name="account_type">COGS</field>
+            <field name="currency_id" ref="base.SOS"/>
         </record>
         <record id="account_rent_expense" model="idil.chart.account">
             <field name="code">500201</field>
@@ -183,6 +195,7 @@
             <field name="subheader_id" ref="subheader_rent"/>
             <field name="sign">Dr</field>
             <field name="FinancialReporting">PL</field>
+            <field name="currency_id" ref="base.SOS"/>
         </record>
         <record id="account_utilities_expense" model="idil.chart.account">
             <field name="code">500301</field>
@@ -190,6 +203,7 @@
             <field name="subheader_id" ref="subheader_utilities"/>
             <field name="sign">Dr</field>
             <field name="FinancialReporting">PL</field>
+            <field name="currency_id" ref="base.SOS"/>
         </record>
     </data>
 </odoo>

@@ -12,6 +12,7 @@ class JournalEntry(models.Model):
     line_ids = fields.One2many('idil.journal.entry.line', 'entry_id', string='Journal Lines')
     currency_id = fields.Many2one('res.currency', string='Currency', required=True,
                                   default=lambda self: self.env.company.currency_id)
+
     total_debit = fields.Monetary(string='Total Debit', compute='_compute_totals', store=True)
     total_credit = fields.Monetary(string='Total Credit', compute='_compute_totals', store=True)
 
@@ -188,7 +189,8 @@ class JournalEntryLine(models.Model):
     credit = fields.Monetary(string='Credit', currency_field='currency_id', store=True)
     description = fields.Char(string='Description')
     name = fields.Char(string='Name')
-    currency_id = fields.Many2one(related='entry_id.currency_id', store=True, related_sudo=False)
+    currency_id = fields.Many2one('res.currency', string='Currency', related='account_id.currency_id', store=True,
+                                  readonly=True)
 
     @api.onchange('debit')
     def _onchange_debit(self):
@@ -199,3 +201,9 @@ class JournalEntryLine(models.Model):
     def _onchange_credit(self):
         if self.credit:
             self.debit = 0
+
+    @api.onchange('account_id')
+    def _onchange_account_id(self):
+        if self.account_id and self.currency_id:
+            accounts = self.env['idil.chart.account'].search([('currency_id', '=', self.currency_id.id)])
+            return {'domain': {'account_id': [('id', 'in', accounts.ids)]}}

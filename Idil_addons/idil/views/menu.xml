@@ -212,7 +212,8 @@
               name="Trial Balance"
               parent="Reports"
               sequence="-1"
-              action="action_compute_trial_balance"/>
+              action="action_open_trial_balance_wizard"/>
+
 
     <menuitem id="Reports_bs"
               name="Account Balances"
@@ -232,17 +233,18 @@
               action="action_generate_vendor_transaction"
               sequence="3"/>
 
+    <!-- Menu Item Definition -->
+    <menuitem id="menu_balance_sheet_report"
+              name="Balance Sheet Report"
+              parent="Reports"
+              action="action_report_currency_wizard"
+              sequence="4"/>
+
     <menuitem id="menu_sales_person_report"
               name="Sales Person Balance Report"
               parent="Reports"
               action="action_generate_sales_person_balances"/>
 
-
-    <menuitem id="menu_balance_sheet_report"
-              name="Balance Sheet Report"
-              parent="Reports"
-              action="action_view_transaction_bookingline_table"
-              sequence="4"/>
 
     <menuitem id="menu_sales_personnel_balance"
               name="Sales Receipt"

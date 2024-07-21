@@ -11,15 +11,18 @@
 
     'assets': {
         'web.assets_common': [
-            'idil/static/src/scss/primary_variables.scss',
+            # 'idil/static/src/scss/primary_variables.scss',
+
         ],
         'point_of_sale.assets': [
             'idil/static/src/js/pos_customer_modification.js',
         ],
         'web.assets_backend': [
             'idil/static/src/css/kanban.css',
-            'idil/static/src/scss/custom_styles.scss',
 
+        ],
+        'web._assets_primary_variables': [
+            ('prepend', 'idil/static/src/scss/primary_variables.scss'),
         ],
 
     },
@@ -52,9 +55,7 @@
         'views/BOM.xml',
         'views/bom_type_view.xml',
         'views/product_views.xml',
-        'views/report_balance_sheet.xml',
         'views/view_manufacturing_order.xml',
-        'reports/balance_sheet_report.xml',
         'reports/Account_balance_report.xml',
         'reports/Vendor_balance_report.xml',
         'reports/vendor_transaction_report.xml',
@@ -74,10 +75,13 @@
         'views/kitchen_views.xml',
         'views/kitchen_transfer_views.xml',
         'views/view_trial_balance.xml',
+
         'views/kitchen_cook.xml',
         'views/transaction_booking_views.xml',
         'views/view_journal_entry.xml',
         'views/vendor_transaction_views.xml',
+
+        'views/report_balance_sheet.xml',
 
         'views/menu.xml',
     ],

@@ -15,6 +15,139 @@ class AccountHeader(models.Model):
 
     sub_header_ids = fields.One2many('idil.chart.account.subheader', 'header_id', string='Sub Headers')
 
+    # @api.model
+    # def get_bs_report_data(self, currency_id):
+    #     headers = self.search([])
+    #     report_data = []
+    #     currency_obj = self.env['res.currency'].browse(currency_id)
+    #
+    #     for header in headers:
+    #         header_total = 0
+    #         subheaders_data = []
+    #
+    #         for subheader in header.sub_header_ids:
+    #             subheader_total = 0
+    #             accounts_data = []
+    #             currency_symbol = currency_obj.symbol  # Default to the report's main currency symbol
+    #
+    #             for account in subheader.account_ids:
+    #                 if account.FinancialReporting == 'BS' and account.currency_id.id == currency_id:
+    #                     balance = account.get_balance()
+    #                     formatted_balance = "{:,.2f}".format(balance)  # Formatting the balance
+    #
+    #                     accounts_data.append({
+    #                         'account_code': account.code,
+    #                         'account_name': account.name,
+    #                         'balance': formatted_balance,
+    #                         'currency_symbol': account.currency_id.symbol
+    #                     })
+    #                     subheader_total += balance
+    #
+    #             if accounts_data:
+    #                 # Use the currency symbol from the last processed account for consistency
+    #                 currency_symbol = accounts_data[-1]['currency_symbol']
+    #                 formatted_subheader_total = "{:,.2f}".format(subheader_total)
+    #
+    #                 subheaders_data.append({
+    #                     'sub_header_name': subheader.name,
+    #                     'accounts': accounts_data,
+    #                     'sub_header_total': formatted_subheader_total,
+    #                     'currency_symbol': currency_symbol
+    #                 })
+    #
+    #             header_total += subheader_total
+    #             formatted_header_total = "{:,.2f}".format(header_total)
+    #
+    #         if subheaders_data:
+    #             report_data.append({
+    #                 'header_name': header.name,
+    #                 'sub_headers': subheaders_data,
+    #                 'header_total': formatted_header_total,
+    #                 'grand_total': 0,
+    #                 'currency_symbol': currency_obj.symbol  # Use last known symbol from loop
+    #             })
+    #
+    #     return report_data
+
+    @api.model
+    def get_bs_report_data(self, currency_id, report_date):
+        headers = self.search([])
+        report_data = []
+        currency_obj = self.env['res.currency'].browse(currency_id)
+
+        for header in headers:
+            header_total = 0
+            subheaders_data = []
+
+            for subheader in header.sub_header_ids:
+                subheader_total = 0
+                accounts_data = []
+                currency_symbol = currency_obj.symbol  # Default to the report's main currency symbol
+
+                for account in subheader.account_ids:
+                    if account.FinancialReporting == 'BS' and account.currency_id.id == currency_id:
+                        balance = account.get_balance_as_of_date(report_date)  # Modify this method to handle date
+                        formatted_balance = "{:,.2f}".format(balance)
+
+                        accounts_data.append({
+                            'account_code': account.code,
+                            'account_name': account.name,
+                            'balance': formatted_balance,
+                            'currency_symbol': account.currency_id.symbol
+                        })
+                        subheader_total += balance
+
+                if accounts_data:
+                    currency_symbol = accounts_data[-1]['currency_symbol']
+                    formatted_subheader_total = "{:,.2f}".format(subheader_total)
+
+                    subheaders_data.append({
+                        'sub_header_name': subheader.name,
+                        'accounts': accounts_data,
+                        'sub_header_total': formatted_subheader_total,
+                        'currency_symbol': currency_symbol
+                    })
+
+                header_total += subheader_total
+                formatted_header_total = "{:,.2f}".format(header_total)
+
+            if subheaders_data:
+                report_data.append({
+                    'header_name': header.name,
+                    'sub_headers': subheaders_data,
+                    'header_total': formatted_header_total,
+                    'currency_symbol': currency_obj.symbol
+                })
+
+        return report_data
+
+
+class ReportCurrencyWizard(models.TransientModel):
+    _name = 'report.currency.wizard'
+    _description = 'Currency Selection Wizard for Reports'
+
+    currency_id = fields.Many2one('res.currency', string='Currency', required=True,
+                                  help='Select the currency for the report.')
+    report_date = fields.Date(string="Report Date", required=True,
+                              default=fields.Date.context_today,
+                              help="Select the date for which the report is to be generated.")
+
+    def generate_report(self):
+        self.ensure_one()
+        data = {
+            'currency_id': self.currency_id.id,
+            'report_name': 'Balance Sheet for ' + self.currency_id.name,  # Custom dynamic report name based on currency
+            'report_date': self.report_date  # Pass the selected date to the report
+        }
+        context = dict(self.env.context, currency_id=self.currency_id.id)
+        return {
+            'type': 'ir.actions.report',
+            'report_name': 'idil.report_bs_template',
+            'report_type': 'qweb-html',
+            'context': context,
+            'data': data
+        }
+
 
 class AccountSubHeader(models.Model):
     _name = 'idil.chart.account.subheader'
@@ -93,6 +226,15 @@ class Account(models.Model):
     header_code = fields.Char(related='subheader_id.header_id.code', string='Header Code', readonly=True)
 
     header_name = fields.Char(related='subheader_id.header_id.name', string='Header Name', readonly=True, store=True)
+    # Add currency field
+    currency_id = fields.Many2one('res.currency', string='Currency', required=True)
+
+    def name_get(self):
+        result = []
+        for record in self:
+            name = f"{record.name} ({record.currency_id.name})"
+            result.append((record.id, name))
+        return result
 
     @api.depends('code')
     def _compute_account_sign(self):
@@ -124,80 +266,24 @@ class Account(models.Model):
             else:
                 account.FinancialReporting = False
 
-    # class AccountBalanceReport(models.TransientModel):
-    #     _name = 'idil.account.balance.report'
-    #     _description = 'Account Balance Report'
-    #
-    #     type = fields.Char(string="Type")
-    #     subtype = fields.Char(string="subtype")
-    #     account_name = fields.Char(string="Account Name")
-    #     account_code = fields.Char(string="Account Code")
-    #     balance = fields.Float(string="Balance")
-    #
-    #     @api.model
-    #     def generate_account_balances_report(self):
-    #         # Assuming _get_account_balances() prepares the data correctly,
-    #         # but instead of returning it, we'll use it to display in a view
-    #
-    #         # First, ensure any existing records are cleared to avoid stale data
-    #         self.search([]).unlink()
-    #
-    #         # Now, generate new records based on current account balances
-    #         account_balances = self._get_account_balances()
-    #         for balance in account_balances:
-    #             self.create({
-    #                 'type': balance['type'],
-    #                 'subtype': balance['subtype'],
-    #                 'account_name': balance['account_name'],
-    #                 'account_code': balance['account_code'],
-    #                 'balance': balance['balance'],
-    #             })
-    #
-    #         # Return an action to open the view with the newly created records
-    #         return {
-    #             'type': 'ir.actions.act_window',
-    #             'name': 'Account Balances',
-    #             'view_mode': 'tree',
-    #             'res_model': 'idil.account.balance.report',
-    #             'domain': [('balance', '<>', 0)],  # Add this line for the domain
-    #             'context': {'group_by': ['type', 'subtype']},
-    #             'target': 'new',
-    #         }
-    #
-    #     def _get_account_balances(self):
-    #         account_balances = []
-    #         accounts = self.env['idil.chart.account'].search([])
-    #
-    #         for account in accounts:
-    #             debit = sum(self.env['idil.transaction_bookingline'].search(
-    #                 [('account_number', '=', account.code), ('transaction_type', '=', 'dr')]).mapped('dr_amount'))
-    #             credit = sum(self.env['idil.transaction_bookingline'].search(
-    #                 [('account_number', '=', account.code), ('transaction_type', '=', 'cr')]).mapped('cr_amount'))
-    #
-    #             balance = debit - credit
-    #             account_balances.append({
-    #                 'type': account.header_name,
-    #                 'subtype': account.subheader_name,
-    #                 'account_name': account.name,
-    #                 'account_code': account.code,
-    #                 'balance': balance,
-    #             })
-    #         return account_balances
+    # def get_balance(self):
+    #     self.ensure_one()  # Ensures this is called on a single record
+    #     transactions = self.env['idil.transaction_bookingline'].search([
+    #         ('account_number', '=', self.id)  # Assuming 'account_number' is a Many2one field to 'idil.chart.account'
+    #     ])
+    #     debit = sum(transaction.dr_amount for transaction in transactions if transaction.transaction_type == 'dr')
+    #     credit = sum(transaction.cr_amount for transaction in transactions if transaction.transaction_type == 'cr')
+    #     return abs(debit - credit)
 
-    def calculate_balance(self):
-        self.ensure_one()  # Ensure this method is called on a single record
-        account_number = self.code  # Assuming this model has an account_number field
-
-        # Fetching all transaction booking lines related to this account
-        booking_lines = self.env['idil.transaction_bookingline'].search([('account_number', '=', account_number)])
-
-        # Calculating the balance
-        debit_total = sum(line.dr_amount for line in booking_lines if line.transaction_type == 'dr')
-        credit_total = sum(line.cr_amount for line in booking_lines if line.transaction_type == 'cr')
-
-        # The balance is the total of debits minus the total of credits
-        balance = debit_total - credit_total
-        return balance
+    def get_balance_as_of_date(self, date):
+        self.ensure_one()  # Ensures this is called on a single record
+        transactions = self.env['idil.transaction_bookingline'].search([
+            ('account_number', '=', self.id),
+            ('transaction_date', '<=', date)  # Filter transactions up to the specified date
+        ])
+        debit = sum(transaction.dr_amount for transaction in transactions if transaction.transaction_type == 'dr')
+        credit = sum(transaction.cr_amount for transaction in transactions if transaction.transaction_type == 'cr')
+        return abs(debit - credit)
 
 
 class AccountBalanceReport(models.TransientModel):
@@ -210,6 +296,8 @@ class AccountBalanceReport(models.TransientModel):
     # account_code = fields.Char(string="Account Code")
     account_id = fields.Many2one('idil.chart.account', string="Account", store=True)
     balance = fields.Float(compute='_compute_balance', store=True)
+    currency_id = fields.Many2one('res.currency', string='Currency', related='account_id.currency_id', store=True,
+                                  readonly=True)
 
     @api.depends('account_id')
     def _compute_balance(self):
