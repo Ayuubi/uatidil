@@ -7,7 +7,7 @@
     'depends': ['mail', 'point_of_sale', 'web'],
     'application': True,
     'sequence': -100,
-    'author': 'color',
+    'author': 'colortest',
 
     'assets': {
         'web.assets_common': [
