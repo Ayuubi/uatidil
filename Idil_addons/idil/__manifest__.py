@@ -7,7 +7,7 @@
     'depends': ['mail', 'point_of_sale', 'web'],
     'application': True,
     'sequence': -100,
-    'author': 'pull',
+    'author': 'colortestdocker',
 
     'assets': {
         'web.assets_common': [
