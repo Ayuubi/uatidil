@@ -208,49 +208,67 @@
               parent="menu_idil_home"
               sequence="7"/>
 
+    <menuitem id="FinancialReports"
+              name="Financial Reports"
+              parent="Reports"
+              sequence="1"/>
+
     <menuitem id="menu_trial_balance"
               name="Trial Balance"
-              parent="Reports"
-              sequence="-1"
-              action="action_open_trial_balance_wizard"/>
-
-
-    <menuitem id="Reports_bs"
-              name="Account Balances"
-              parent="Reports"
-              sequence="1"
-              action="action_generate_account_balances"
-    />
-    <menuitem id="Reports_vendor"
-              name="Vendor Balances"
-              parent="Reports"
+              parent="FinancialReports"
               sequence="2"
-              action="action_generate_vendor_balances"
-    />
-    <menuitem id="menu_vendor_transaction_report"
-              name="Vendor Transaction Report"
-              parent="Reports"
-              action="action_generate_vendor_transaction"
-              sequence="3"/>
+              action="action_open_trial_balance_wizard"/>
 
     <!-- Menu Item Definition -->
     <menuitem id="menu_balance_sheet_report"
               name="Balance Sheet Report"
-              parent="Reports"
+              parent="FinancialReports"
               action="action_report_currency_wizard"
+              sequence="3"/>
+
+    <menuitem id="menu_income_report"
+              name="Income Statement Report"
+              parent="FinancialReports"
+              action="action_income_report_currency_wizard"
+              sequence="-3"/>
+
+
+    <menuitem id="OtherReports"
+              name="System Reports"
+              parent="Reports"
               sequence="4"/>
+
+    <menuitem id="Reports_bs"
+              name="Account Balances"
+              parent="OtherReports"
+              sequence="5"
+              action="action_generate_account_balances"
+    />
+    <menuitem id="Reports_vendor"
+              name="Vendor Balances"
+              parent="OtherReports"
+              sequence="6"
+              action="action_generate_vendor_balances"
+    />
+    <menuitem id="menu_vendor_transaction_report"
+              name="Vendor Transaction Report"
+              parent="OtherReports"
+              action="action_generate_vendor_transaction"
+              sequence="7"/>
+
 
     <menuitem id="menu_sales_person_report"
               name="Sales Person Balance Report"
-              parent="Reports"
-              action="action_generate_sales_person_balances"/>
+              parent="OtherReports"
+              action="action_generate_sales_person_balances"
+              sequence="8"/>
 
 
     <menuitem id="menu_sales_personnel_balance"
               name="Sales Receipt"
-              parent="Reports"
+              parent="OtherReports"
               action="action_sales_receipt_balance"
-              sequence="5"/>
+              sequence="9"/>
 
 
     <menuitem id="model_a_menu"

@@ -82,6 +82,7 @@
         'views/vendor_transaction_views.xml',
 
         'views/report_balance_sheet.xml',
+        'views/report_income_statement.xml',
 
         'views/menu.xml',
     ],

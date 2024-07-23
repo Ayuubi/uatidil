@@ -15,60 +15,6 @@ class AccountHeader(models.Model):
 
     sub_header_ids = fields.One2many('idil.chart.account.subheader', 'header_id', string='Sub Headers')
 
-    # @api.model
-    # def get_bs_report_data(self, currency_id):
-    #     headers = self.search([])
-    #     report_data = []
-    #     currency_obj = self.env['res.currency'].browse(currency_id)
-    #
-    #     for header in headers:
-    #         header_total = 0
-    #         subheaders_data = []
-    #
-    #         for subheader in header.sub_header_ids:
-    #             subheader_total = 0
-    #             accounts_data = []
-    #             currency_symbol = currency_obj.symbol  # Default to the report's main currency symbol
-    #
-    #             for account in subheader.account_ids:
-    #                 if account.FinancialReporting == 'BS' and account.currency_id.id == currency_id:
-    #                     balance = account.get_balance()
-    #                     formatted_balance = "{:,.2f}".format(balance)  # Formatting the balance
-    #
-    #                     accounts_data.append({
-    #                         'account_code': account.code,
-    #                         'account_name': account.name,
-    #                         'balance': formatted_balance,
-    #                         'currency_symbol': account.currency_id.symbol
-    #                     })
-    #                     subheader_total += balance
-    #
-    #             if accounts_data:
-    #                 # Use the currency symbol from the last processed account for consistency
-    #                 currency_symbol = accounts_data[-1]['currency_symbol']
-    #                 formatted_subheader_total = "{:,.2f}".format(subheader_total)
-    #
-    #                 subheaders_data.append({
-    #                     'sub_header_name': subheader.name,
-    #                     'accounts': accounts_data,
-    #                     'sub_header_total': formatted_subheader_total,
-    #                     'currency_symbol': currency_symbol
-    #                 })
-    #
-    #             header_total += subheader_total
-    #             formatted_header_total = "{:,.2f}".format(header_total)
-    #
-    #         if subheaders_data:
-    #             report_data.append({
-    #                 'header_name': header.name,
-    #                 'sub_headers': subheaders_data,
-    #                 'header_total': formatted_header_total,
-    #                 'grand_total': 0,
-    #                 'currency_symbol': currency_obj.symbol  # Use last known symbol from loop
-    #             })
-    #
-    #     return report_data
-
     @api.model
     def get_bs_report_data(self, currency_id, report_date):
         headers = self.search([])
@@ -121,6 +67,45 @@ class AccountHeader(models.Model):
 
         return report_data
 
+    @api.model
+    def get_pl_report_data(self, currency_id, report_date):
+        headers = self.search([('code', 'in', ['4', '5', '6'])])  # Adjust the domain as needed
+        report_data = []
+        currency_obj = self.env['res.currency'].browse(currency_id)
+
+        for header in headers:
+            header_data = {
+                'header_name': header.name,
+                'subheaders': []
+            }
+            for subheader in header.sub_header_ids:
+                subheader_data = {
+                    'sub_header_name': subheader.name,
+                    'accounts': [],
+                    'subheader_total': 0.0
+                }
+                for account in subheader.account_ids:
+                    if account.currency_id.id == currency_id:
+                        balance = account.get_balance_as_of_date(report_date)
+                        subheader_data['accounts'].append({
+                            'account_code': account.code,
+                            'account_name': account.name,
+                            'balance': "{:,.2f}".format(balance),
+                            'currency_symbol': account.currency_id.symbol
+                        })
+                        subheader_data['subheader_total'] += balance
+
+                subheader_data['subheader_total'] = "{:,.2f}".format(subheader_data['subheader_total'])
+                header_data['subheaders'].append(subheader_data)
+
+            report_data.append(header_data)
+
+        return {
+            'report_date': report_date,
+            'currency_symbol': currency_obj.symbol,
+            'report_data': report_data
+        }
+
 
 class ReportCurrencyWizard(models.TransientModel):
     _name = 'report.currency.wizard'
@@ -143,6 +128,32 @@ class ReportCurrencyWizard(models.TransientModel):
         return {
             'type': 'ir.actions.report',
             'report_name': 'idil.report_bs_template',
+            'report_type': 'qweb-html',
+            'context': context,
+            'data': data
+        }
+
+
+class IncomeReportCurrencyWizard(models.TransientModel):
+    _name = 'report.income.currency.wizard'
+    _description = 'Currency Selection Wizard for Income Reports'
+
+    currency_id = fields.Many2one('res.currency', string='Currency', required=True,
+                                  help='Select the currency for the Income report.')
+    report_date = fields.Date(string="Report Date", required=True,
+                              default=fields.Date.context_today,
+                              help="Select the date for which the Income report is to be generated.")
+
+    def generate_income_report(self):
+        self.ensure_one()
+        data = {
+            'currency_id': self.currency_id.id,
+            'report_date': self.report_date  # Pass the selected date to the report
+        }
+        context = dict(self.env.context, currency_id=self.currency_id.id)
+        return {
+            'type': 'ir.actions.report',
+            'report_name': 'idil.report_income_statement_template',
             'report_type': 'qweb-html',
             'context': context,
             'data': data
@@ -265,15 +276,6 @@ class Account(models.Model):
                     account.FinancialReporting = False
             else:
                 account.FinancialReporting = False
-
-    # def get_balance(self):
-    #     self.ensure_one()  # Ensures this is called on a single record
-    #     transactions = self.env['idil.transaction_bookingline'].search([
-    #         ('account_number', '=', self.id)  # Assuming 'account_number' is a Many2one field to 'idil.chart.account'
-    #     ])
-    #     debit = sum(transaction.dr_amount for transaction in transactions if transaction.transaction_type == 'dr')
-    #     credit = sum(transaction.cr_amount for transaction in transactions if transaction.transaction_type == 'cr')
-    #     return abs(debit - credit)
 
     def get_balance_as_of_date(self, date):
         self.ensure_one()  # Ensures this is called on a single record
