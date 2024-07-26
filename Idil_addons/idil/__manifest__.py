@@ -19,7 +19,7 @@
         ],
         'web.assets_backend': [
             'idil/static/src/css/kanban.css',
-            'idil/static/src/js/webclient.js',  # Include your new JS file here
+             # Include your new JS file here
 
         ],
         'web._assets_primary_variables': [
