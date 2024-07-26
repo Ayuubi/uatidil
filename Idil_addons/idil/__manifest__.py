@@ -19,6 +19,7 @@
         ],
         'web.assets_backend': [
             'idil/static/src/css/kanban.css',
+            'idil/static/src/js/webclient.js',  # Include your new JS file here
 
         ],
         'web._assets_primary_variables': [
@@ -84,6 +85,7 @@
         'views/report_balance_sheet.xml',
         'views/report_income_statement.xml',
 
+        'views/template_override.xml',
         'views/menu.xml',
     ],
 }
