@@ -207,6 +207,7 @@ class Account(models.Model):
         ('receivable', 'Account Receivable'),
         ('COGS', 'COGS'),
         ('kitchen', 'kitchen'),
+        ('Owners Equity', 'Owners Equity'),
     ]
 
     code = fields.Char(string='Account Code', required=True, tracking=True)
@@ -239,6 +240,47 @@ class Account(models.Model):
     header_name = fields.Char(related='subheader_id.header_id.name', string='Header Name', readonly=True, store=True)
     # Add currency field
     currency_id = fields.Many2one('res.currency', string='Currency', required=True)
+
+    balance = fields.Float(string='Current Balance', compute='_compute_balance', store=True)
+
+    transaction_bookingline_ids = fields.One2many(
+        'idil.transaction_bookingline', 'account_number', string='Transaction Booking Lines'
+    )
+
+    @api.depends('transaction_bookingline_ids.dr_amount', 'transaction_bookingline_ids.cr_amount')
+    def _compute_balance(self):
+        for account in self:
+            # Clear the balance before calculation
+            account.balance = 0
+            debit_sum = sum(
+                account.transaction_bookingline_ids.filtered(lambda l: l.transaction_type == 'dr').mapped('dr_amount'))
+            credit_sum = sum(
+                account.transaction_bookingline_ids.filtered(lambda l: l.transaction_type == 'cr').mapped('cr_amount'))
+            account.balance = debit_sum - credit_sum
+
+    @api.model
+    def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
+        if 'balance' in fields:
+            fields.remove('balance')
+        res = super(Account, self).read_group(domain, fields, groupby, offset, limit, orderby, lazy)
+        if 'balance' not in fields:
+            fields.append('balance')
+        if 'balance' in fields:
+            for line in res:
+                if '__domain' in line:
+                    accounts = self.search(line['__domain'])
+                    # Ensure balances are computed
+                    accounts._compute_balance()
+                    balance = sum(account.balance for account in accounts)
+                    line['balance'] = balance
+        return res
+
+    @api.model
+    def read(self, fields=None, load='_classic_read'):
+        res = super(Account, self).read(fields, load)
+        for record in self:
+            record._compute_balance()
+        return res
 
     def name_get(self):
         result = []

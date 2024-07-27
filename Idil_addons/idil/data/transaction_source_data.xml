@@ -30,6 +30,13 @@
             <field name="name">Manual Transaction</field>
             <field name="description">Manual transaction entry</field>
         </record>
+
+        <record id="trx_source_manual" model="idil.transaction.source">
+            <field name="name">Inventory Opening Balance</field>
+            <field name="description">Inventory Opening Balance</field>
+        </record>
+
+
         <!-- Add more records as needed -->
     </data>
 </odoo>
