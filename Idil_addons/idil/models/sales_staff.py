@@ -15,14 +15,48 @@ class SalesPersonnel(models.Model):
     email = fields.Char(string='Email')
     active = fields.Boolean(string='Active', default=True)
     image = fields.Binary(string="Image")
+
+    currency_id = fields.Many2one('res.currency', string='Currency', required=True,
+                                  default=lambda self: self.env.company.currency_id)
+
     account_receivable_id = fields.Many2one(
         'idil.chart.account',
-        string='Receivable Account',
-        domain=[('account_type', '=', 'receivable')],
-        help="Select the receivable account for transactions."
+        string='Commission Account',
+        domain="[('account_type', 'like', 'receivable'), ('code', 'like', '1%'), "
+               "('currency_id', '=', currency_id)]",
+        help="Select the receivable account for transactions.",
+        required=True
     )
+
     address = fields.Text(string='Address')
     balance = fields.Float(string="Balance", store=True)
+    transaction_ids = fields.One2many('idil.salesperson.transaction', 'sales_person_id', string='Transactions')
+
+    @api.onchange('currency_id')
+    def _onchange_currency_id(self):
+        """Updates the domain for account_id based on the selected currency."""
+        for employee in self:
+            if employee.currency_id:
+                employee.account_receivable_id = False  # Clear the previous selection
+
+                return {
+                    'domain': {
+                        'account_receivable_id': [
+                            ('account_type', 'like', 'receivable'),
+                            ('code', 'like', '1%'),
+                            ('currency_id', '=', employee.currency_id.id)
+                        ]
+                    }
+                }
+            else:
+                return {
+                    'domain': {
+                        'account_receivable_id': [
+                            ('account_type', 'like', 'receivable'),
+                            ('code', 'like', '1%')
+                        ]
+                    }
+                }
 
 
 class SalesPersonBalanceReport(models.TransientModel):
@@ -32,6 +66,7 @@ class SalesPersonBalanceReport(models.TransientModel):
     sales_person_id = fields.Many2one('idil.sales.sales_personnel', string='Sales Person')
     sales_person_name = fields.Char(string="Sales Person Name")
     sales_person_phone = fields.Char(string="Sales Person Phone number")
+
     account_id = fields.Many2one('idil.chart.account', string="Account", store=True)
     account_name = fields.Char(string="Account Name")
     account_code = fields.Char(string="Account Code")
@@ -98,3 +133,35 @@ class SalesPersonBalanceReport(models.TransientModel):
             })
 
         return sales_person_balances
+
+
+class SalespersonTransaction(models.Model):
+    _name = 'idil.salesperson.transaction'
+    _description = 'Salesperson Transaction'
+
+    sales_person_id = fields.Many2one('idil.sales.sales_personnel', string='Salesperson', required=True)
+    date = fields.Date(string='Transaction Date', default=fields.Date.today)
+    order_id = fields.Many2one('idil.sale.order', string='Sale Order')
+    transaction_type = fields.Selection([('in', 'In'), ('out', 'Out')], string='Transaction Type', required=True)
+    amount = fields.Float(string='Amount')
+    description = fields.Text(string='Description')
+    running_balance = fields.Float(string='Running Balance', compute='_compute_running_balance', store=True)
+
+    @api.depends('sales_person_id', 'amount', 'transaction_type')
+    def _compute_running_balance(self):
+        for transaction in self:
+            # Get all transactions for the salesperson up to and including this one
+            transactions = self.search([
+                ('sales_person_id', '=', transaction.sales_person_id.id),
+                ('id', '<=', transaction.id)
+            ], order='date asc, id asc')
+
+            # Calculate the running balance
+            balance = 0.0
+            for trans in transactions:
+                if trans.transaction_type == 'in':
+                    balance += trans.amount
+                else:  # 'out'
+                    balance -= trans.amount
+                # Update the running balance for this transaction
+                trans.running_balance = balance

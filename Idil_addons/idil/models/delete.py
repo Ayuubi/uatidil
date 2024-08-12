@@ -14,7 +14,8 @@ class ModelA(models.Model):
     def delete_other_models_data(self, *args, **kwargs):
         models_to_delete = [
             'idil.vendor_transaction',
-
+            'idil.vendor_payment',
+            'idil_commission',
             'idil.manufacturing.order.line',
             'idil.manufacturing.order',
 
@@ -38,6 +39,9 @@ class ModelA(models.Model):
 
             'idil.transaction_bookingline',
             'idil.transaction_booking',
+
+            'idil.salesperson.transaction',
+            'idil.item.movement',
 
             # 'pos.payment',
             # 'pos.order',

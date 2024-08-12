@@ -19,7 +19,8 @@
         ],
         'web.assets_backend': [
             'idil/static/src/css/kanban.css',
-             # Include your new JS file here
+
+            # Include your new JS file here
 
         ],
         'web._assets_primary_variables': [
@@ -43,6 +44,7 @@
         'data/delete.xml',
         'data/booking_sequence.xml',
         'data/purchase_sequence.xml',
+        'reports/report_placeorder.xml',
 
         'views/customer_view.xml',
         'views/vendor_view.xml',
@@ -86,6 +88,12 @@
         'views/report_income_statement.xml',
 
         'views/template_override.xml',
+
+        'views/view_commission.xml',
+        'views/CurrencyExchange.xml',
+        'views/company_trial_balance.xml',
+        'views/income_statement.xml',
+        'views/idil_balance_sheet_report.xml',
         'views/menu.xml',
     ],
 }

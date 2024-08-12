@@ -15,7 +15,8 @@ class BOM(models.Model):
     bom_line_ids = fields.One2many('idil.bom.line', 'bom_id', string='BOM Lines', tracking=True)
 
     # Computed field to calculate total cost based on BOM lines
-    total_cost = fields.Float(string='Total Cost', compute='_compute_total_cost', store=True, tracking=True)
+    total_cost = fields.Float(string='Total Cost', digits=(16, 5), compute='_compute_total_cost', store=True,
+                              tracking=True)
 
     @api.depends('bom_line_ids', 'bom_line_ids.Item_id', 'bom_line_ids.quantity')
     def _compute_total_cost(self):
@@ -33,7 +34,7 @@ class BOMLine(models.Model):
     _description = 'BOM Line'
 
     Item_id = fields.Many2one('idil.item', string='Component', required=True, tracking=True)
-    quantity = fields.Float(string='Quantity', required=True)
+    quantity = fields.Float(string='Quantity', digits=(16, 5), required=True)
     bom_id = fields.Many2one('idil.bom', string='BOM',
                              ondelete='cascade', tracking=True)
 

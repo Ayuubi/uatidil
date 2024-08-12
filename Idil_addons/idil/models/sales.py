@@ -20,6 +20,29 @@ class SaleOrder(models.Model):
     order_total = fields.Float(string='Order Total', compute='_compute_order_total', store=True)
     state = fields.Selection([('draft', 'Draft'), ('confirmed', 'Confirmed'), ('cancel', 'Cancelled')], default='draft')
 
+    commission_amount = fields.Float(
+        string='Commission Amount',
+        compute='_compute_total_commission',
+        store=True
+    )
+
+    @api.depends('order_lines.quantity', 'order_lines.product_id.commission')
+    def _compute_total_commission(self):
+        for order in self:
+            total_commission = 0.0
+            for line in order.order_lines:
+                product = line.product_id
+                if product.is_sales_commissionable:
+                    if not product.sales_account_id:
+                        raise ValidationError(f"Product '{product.name}' does not have a Sales Commission Account set.")
+                    if product.commission <= 0:
+                        raise ValidationError(f"Product '{product.name}' does not have a valid Commission Rate set.")
+
+                    # Calculate commission only if validations pass
+                    total_commission += line.quantity * product.commission
+
+            order.commission_amount = total_commission
+
     @api.model
     def create(self, vals):
         # Step 1: Check if sales_person_id is provided in vals
@@ -42,6 +65,15 @@ class SaleOrder(models.Model):
 
         # Proceed with creating the SaleOrder with the updated vals
         new_order = super(SaleOrder, self).create(vals)
+        # Create a corresponding SalesReceipt
+        self.env['idil.sales.receipt'].create({
+            'sales_order_id': new_order.id,
+            'due_amount': new_order.order_total,
+            'paid_amount': 0,
+            'remaining_amount': new_order.order_total,
+            'salesperson_id': new_order.sales_person_id.id,
+        })
+
         new_order.book_accounting_entry()
 
         return new_order
@@ -73,10 +105,15 @@ class SaleOrder(models.Model):
             # Prepare a list of commands to update 'order_lines' one2many field
             order_lines_cmds = [(5, 0, 0)]  # Command to delete all existing records in the set
             for line in last_order.order_lines:
+                discount_quantity = (line.product_id.discount / 100) * (
+                    line.quantity) if line.product_id.is_quantity_discount else 0.0
+
                 order_lines_cmds.append((0, 0, {
                     'product_id': line.product_id.id,
                     'quantity_Demand': line.quantity,
-                    'quantity': line.quantity,  # Set initial 'quantity' the same as 'quantity_Demand'
+                    'discount_quantity': discount_quantity,
+                    'quantity': line.quantity,
+                    # Set initial 'quantity' the same as 'quantity_Demand'
                     # Add other necessary fields here
                 }))
 
@@ -90,6 +127,9 @@ class SaleOrder(models.Model):
         for order in self:
             if not order.sales_person_id.account_receivable_id:
                 raise ValidationError("The salesperson does not have a receivable account set.")
+
+            # Define the expected currency from the salesperson's account receivable
+            expected_currency = order.sales_person_id.account_receivable_id.currency_id
 
             # Create a transaction booking
             transaction_booking = self.env['idil.transaction_booking'].create({
@@ -107,10 +147,75 @@ class SaleOrder(models.Model):
             total_debit = 0
             # For each order line, create a booking line entry for debit
             for line in order.order_lines:
+                product = line.product_id
+
+                # Validate required accounts and currency consistency
+                if line.commission_amount > 0:
+                    if not product.sales_account_id:
+                        raise ValidationError(
+                            f"Product '{product.name}' has a commission amount but no Sales Commission Account set.")
+                    if product.sales_account_id.currency_id != expected_currency:
+                        raise ValidationError(
+                            f"Sales Commission Account for product '{product.name}' has a different currency.\n"
+                            f"Expected currency: {expected_currency.name}, "
+                            f"Actual currency: {product.sales_account_id.currency_id.name}."
+                        )
+
+                if line.discount_amount > 0:
+                    if not product.sales_discount_id:
+                        raise ValidationError(
+                            f"Product '{product.name}' has a discount amount but no Sales Discount Account set.")
+                    if product.sales_discount_id.currency_id != expected_currency:
+                        raise ValidationError(
+                            f"Sales Discount Account for product '{product.name}' has a different currency.\n"
+                            f"Expected currency: {expected_currency.name}, "
+                            f"Actual currency: {product.sales_discount_id.currency_id.name}."
+                        )
+
+                if not product.asset_account_id:
+                    raise ValidationError(f"Product '{product.name}' does not have an Asset Account set.")
+                if product.asset_account_id.currency_id != expected_currency:
+                    raise ValidationError(
+                        f"Asset Account for product '{product.name}' has a different currency.\n"
+                        f"Expected currency: {expected_currency.name}, "
+                        f"Actual currency: {product.asset_account_id.currency_id.name}."
+                    )
+
+                # Check asset account balance for sufficiency
+                asset_balance = self.env['idil.transaction_bookingline'].search([
+                    ('account_number', '=', product.asset_account_id.id),
+                ]).read_group(
+                    [('account_number', '=', product.asset_account_id.id)],
+                    ['dr_amount', 'cr_amount'],
+                    ['account_number']
+                )
+
+                # Calculate current asset balance
+                asset_balance_amount = sum(record['dr_amount'] - record['cr_amount'] for record in asset_balance)
+
+                # Calculate total transaction amount that affects the asset account
+                total_transaction_amount = line.subtotal + line.commission_amount + line.discount_amount
+
+                if asset_balance_amount < total_transaction_amount:
+                    raise ValidationError(
+                        f"Insufficient balance in Asset Account for product '{product.name}'.\n"
+                        f"Available balance: {asset_balance_amount}, Required: {total_transaction_amount}."
+                    )
+
+                if not product.income_account_id:
+                    raise ValidationError(f"Product '{product.name}' does not have an Income Account set.")
+                if product.income_account_id.currency_id != expected_currency:
+                    raise ValidationError(
+                        f"Income Account for product '{product.name}' has a different currency.\n"
+                        f"Expected currency: {expected_currency.name}, "
+                        f"Actual currency: {product.income_account_id.currency_id.name}."
+                    )
+
+                # Debit entry for the order line amount
                 self.env['idil.transaction_bookingline'].create({
                     'transaction_booking_id': transaction_booking.id,
-                    'description': f'Sale of {line.product_id.name}',
-                    'product_id': line.product_id.id,
+                    'description': f'Sale of {product.name}',
+                    'product_id': product.id,
                     'account_number': order.sales_person_id.account_receivable_id.id,
                     'transaction_type': 'dr',  # Debit transaction
                     'dr_amount': line.subtotal,
@@ -121,20 +226,58 @@ class SaleOrder(models.Model):
                 total_debit += line.subtotal
 
                 # Credit entry using the product's income account
-                if line.product_id.income_account_id:
+                self.env['idil.transaction_bookingline'].create({
+                    'transaction_booking_id': transaction_booking.id,
+                    'description': f'Sales Revenue - {product.name}',
+                    'product_id': product.id,
+                    'account_number': product.income_account_id.id,
+                    'transaction_type': 'cr',
+                    'dr_amount': 0,
+                    'cr_amount': line.subtotal,
+                    'transaction_date': fields.Date.context_today(self),
+                    # Include other necessary fields
+                })
+
+                # Credit entry asset inventory account of the product
+                self.env['idil.transaction_bookingline'].create({
+                    'transaction_booking_id': transaction_booking.id,
+                    'description': f'Sales Inventory account for - {product.name}',
+                    'product_id': product.id,
+                    'account_number': product.asset_account_id.id,
+                    'transaction_type': 'cr',
+                    'dr_amount': 0,
+                    'cr_amount': total_transaction_amount,
+                    'transaction_date': fields.Date.context_today(self),
+                    # Include other necessary fields
+                })
+
+                # Debit entry for commission expenses
+                if product.is_sales_commissionable and line.commission_amount > 0:
                     self.env['idil.transaction_bookingline'].create({
                         'transaction_booking_id': transaction_booking.id,
-                        'description': f'Sales Revenue - {line.product_id.name}',
-                        'product_id': line.product_id.id,
-                        'account_number': line.product_id.income_account_id.id,
-                        'transaction_type': 'cr',
-                        'dr_amount': 0,
-                        'cr_amount': line.subtotal,
+                        'description': f'Commission Expense - {product.name}',
+                        'product_id': product.id,
+                        'account_number': product.sales_account_id.id,
+                        'transaction_type': 'dr',  # Debit transaction for commission expense
+                        'dr_amount': line.commission_amount,
+                        'cr_amount': 0,
                         'transaction_date': fields.Date.context_today(self),
                         # Include other necessary fields
                     })
-                else:
-                    raise ValidationError(f"Product {line.product_id.name} does not have an income account set.")
+
+                # Debit entry for discount expenses
+                if line.discount_amount > 0:
+                    self.env['idil.transaction_bookingline'].create({
+                        'transaction_booking_id': transaction_booking.id,
+                        'description': f'Discount Expense - {product.name}',
+                        'product_id': product.id,
+                        'account_number': product.sales_discount_id.id,
+                        'transaction_type': 'dr',  # Debit transaction for discount expense
+                        'dr_amount': line.discount_amount,
+                        'cr_amount': 0,
+                        'transaction_date': fields.Date.context_today(self),
+                        # Include other necessary fields
+                    })
 
     def write(self, vals):
         # Call the original write method
@@ -181,24 +324,86 @@ class SaleOrderLine(models.Model):
     quantity_diff = fields.Float(string='Quantity Difference', compute='_compute_quantity_diff', store=True)
 
     price_unit = fields.Float(string='Unit Price', related='product_id.sale_price', store=True)
-    subtotal = fields.Float(string='Subtotal', compute='_compute_subtotal')
+    discount_amount = fields.Float(string='Discount Amount', compute='_compute_discount_amount', store=True)
+
+    subtotal = fields.Float(string='Due Amount', compute='_compute_subtotal')
+
+    # New computed field for commission amount
+    commission_amount = fields.Float(string='Commission Amount', compute='_compute_commission_amount', store=True)
+
+    # New computed field for Discount amount
+    discount_quantity = fields.Float(string='Discount Quantity', compute='_compute_discount_quantity', store=True)
+
+    @api.depends('quantity', 'product_id.commission')
+    def _compute_commission_amount(self):
+        for line in self:
+            product = line.product_id
+            if product.is_sales_commissionable:
+                if not product.sales_account_id:
+                    raise ValidationError(f"Product '{product.name}' does not have a Sales Commission Account set.")
+                if product.commission <= 0:
+                    raise ValidationError(f"Product '{product.name}' does not have a valid Commission Rate set.")
+
+                # Calculate commission amount
+                line.commission_amount = (line.quantity - line.discount_quantity) * product.commission
+            else:
+                line.commission_amount = 0.0
 
     @api.depends('quantity', 'price_unit')
     def _compute_subtotal(self):
         for line in self:
-            line.subtotal = line.quantity * line.price_unit
+            line.subtotal = (line.quantity * line.price_unit) - (
+                    line.discount_quantity * line.price_unit) - line.commission_amount
+
+    @api.depends('quantity')
+    def _compute_discount_quantity(self):
+        for line in self:
+            line.discount_quantity = (line.product_id.discount / 100) * (
+                line.quantity) if line.product_id.is_quantity_discount else 0.0
+
+    @api.depends('discount_quantity', 'price_unit')
+    def _compute_discount_amount(self):
+        for line in self:
+            line.discount_amount = line.discount_quantity * line.price_unit
 
     @api.depends('quantity_Demand', 'quantity')
     def _compute_quantity_diff(self):
         for record in self:
-            record.quantity_diff = record.quantity_Demand - record.quantity
+            record.quantity_diff = (record.quantity_Demand - record.quantity)
 
     @api.model
     def create(self, vals):
-        result = super(SaleOrderLine, self).create(vals)
-        # Update stock quantity after creating the sale order line without checking product type
-        self.update_product_stock(result.product_id, result.quantity)
-        return result
+        record = super(SaleOrderLine, self).create(vals)
+
+        # Create a Salesperson Transaction
+        if record.order_id.sales_person_id:
+            self.env['idil.salesperson.transaction'].create({
+                'sales_person_id': record.order_id.sales_person_id.id,
+                'date': fields.Date.today(),
+                'order_id': record.order_id.id,
+                'transaction_type': 'out',  # Assuming 'out' for sales
+                'amount': record.subtotal + record.discount_amount + record.commission_amount,
+                'description': f"Sales Amount of - Order Line for {record.product_id.name} (Qty: {record.quantity})"
+            })
+            self.env['idil.salesperson.transaction'].create({
+                'sales_person_id': record.order_id.sales_person_id.id,
+                'date': fields.Date.today(),
+                'order_id': record.order_id.id,
+                'transaction_type': 'in',  # Assuming 'out' for sales
+                'amount': record.commission_amount,
+                'description': f"Sales Commission Amount of - Order Line for  {record.product_id.name} (Qty: {record.quantity})"
+            })
+            self.env['idil.salesperson.transaction'].create({
+                'sales_person_id': record.order_id.sales_person_id.id,
+                'date': fields.Date.today(),
+                'order_id': record.order_id.id,
+                'transaction_type': 'in',  # Assuming 'out' for sales
+                'amount': record.discount_amount,
+                'description': f"Sales Discount Amount of - Order Line for  {record.product_id.name} (Qty: {record.quantity})"
+            })
+
+        self.update_product_stock(record.product_id, record.quantity)
+        return record
 
     def write(self, vals):
         if 'quantity' in vals:

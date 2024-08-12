@@ -75,7 +75,7 @@
               sequence="1"/>
 
     <menuitem id="menu_idil_journal_entry"
-              name="Create Journal Entries"
+              name="360 -- All Transactions"
               parent="menu_idil_accounting"
               action="action_transaction_booking"
 
@@ -85,6 +85,12 @@
               name="Journal Entries"
               parent="menu_idil_accounting"
               action="action_journal_entry"/>
+
+    <!-- Menu Item for Currency Exchange -->
+    <menuitem id="menu_currency_exchange"
+              name="Currency Exchange"
+              parent="menu_idil_accounting"
+              action="action_currency_exchange"/>
 
     <menuitem id="menu_idil_trx_source"
               name="Transaction Sources"
@@ -115,11 +121,11 @@
               sequence="2"
               parent="menu_purchase"/>
 
-    <menuitem id="menu_pending_transactions"
-              name="Vendor Bills"
-              action="action_pay_transaction_booking"
-              sequence="3"
-              parent="menu_purchase"/>
+    <!--    <menuitem id="menu_pending_transactions"-->
+    <!--              name="Vendor Bills"-->
+    <!--              action="action_pay_transaction_booking"-->
+    <!--              sequence="3"-->
+    <!--              parent="menu_purchase"/>-->
 
     <menuitem id="menu_vendor_transaction"
               name="Vendor Transactions"
@@ -158,49 +164,64 @@
               sequence="4"
               action="action_manufacturing_orders"/>
 
+    <!-- Menu Item for Commissions -->
+    <menuitem id="menu_commissions"
+              name="Commissions"
+              parent="Manufacturing"
+              action="action_commissions"/>
 
+
+    <!-- Main Sales Menu -->
     <menuitem id="menu_sales"
               name="Sales"
               parent="menu_idil_home"
               sequence="6"/>
 
+    <!-- Orders Menu -->
     <menuitem id="menu_orders"
               name="Orders"
               parent="menu_sales"
               sequence="1"/>
 
+    <!-- Sales Orders Menu -->
     <menuitem id="menu_sales_orders"
               name="Sales Orders"
               parent="menu_orders"
               sequence="1"
               action="action_sale_order"/>
 
-
+    <!-- Sales Receipt Balance Menu -->
     <menuitem id="menu_sales_receipt_balance"
               name="Sales Receipt"
               parent="menu_orders"
-              action="action_sales_related_pending_transactions"
-              sequence="5"/>
+              sequence="5"
+              action="action_sales_receipt"/>
 
-
+    <!-- Order Operations Menu -->
     <menuitem id="menu_Order_Operations"
               name="Order Operations"
               parent="menu_sales"
-              sequence="2"
-              action="action_salesperson_order_tree"/>
+              sequence="2"/>
 
+    <!-- Place an Order Menu -->
     <menuitem id="menu_place_an_order"
               name="Place an Order"
               parent="menu_Order_Operations"
               sequence="1"
               action="action_salesperson_order_tree"/>
 
-
+    <!-- Register Sales Personnel Menu -->
     <menuitem id="menu_sales_personnel_list"
               name="Register Sales Personnel"
               parent="menu_Order_Operations"
               sequence="2"
               action="action_sales_personnel"/>
+
+    <menuitem id="menu_salesperson_order_summary"
+              name="Order Summary"
+              parent="menu_Order_Operations"
+              sequence="3"
+              action="action_salesperson_order_summary"/>
 
 
     <menuitem id="Reports"
@@ -213,24 +234,45 @@
               parent="Reports"
               sequence="1"/>
 
-    <menuitem id="menu_trial_balance"
-              name="Trial Balance"
+    <menuitem id="menu_by_company"
+              name="By Company"
               parent="FinancialReports"
-              sequence="2"
+              sequence="2"/>
+
+    <menuitem id="menu_company_trial_balance"
+              name="Trial Balance -- By Company"
+              parent="menu_by_company"
+              sequence="1"
+              action="action_open_company_trial_balance_wizard"/>
+
+    <menuitem id="menu_company_income_statement"
+              name="Income statement -- By Company"
+              parent="menu_by_company"
+              sequence="-2"
+              action="action_open_income_statement_wizard"/>
+
+    <menuitem id="menu_company_balance_sheet_report"
+              name="Balance Sheet -- By Company"
+              parent="menu_by_company"
+              sequence="3"/>
+
+    <menuitem id="menu_by_currency"
+              name="By Currency"
+              parent="FinancialReports"
+              sequence="2"/>
+
+    <menuitem id="menu_trial_balance"
+              name="Trial Balance -- By Currency"
+              parent="menu_by_currency"
+              sequence="1"
               action="action_open_trial_balance_wizard"/>
 
     <!-- Menu Item Definition -->
     <menuitem id="menu_balance_sheet_report"
-              name="Balance Sheet Report"
-              parent="FinancialReports"
+              name="Balance Sheet -- By Currency"
+              parent="menu_by_currency"
               action="action_report_currency_wizard"
-              sequence="3"/>
-
-    <menuitem id="menu_income_report"
-              name="Income Statement Report"
-              parent="FinancialReports"
-              action="action_income_report_currency_wizard"
-              sequence="-3"/>
+              sequence="2"/>
 
 
     <menuitem id="OtherReports"
@@ -315,4 +357,9 @@
               parent="menu_kitchen_root"
               action="action_kitchen_cook_process"
               sequence="20"/>
+
+
+    <!-- ________________________________________________________________________________ -->
+
+
 </odoo>

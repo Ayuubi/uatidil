@@ -17,7 +17,7 @@ class TrialBalanceWizard(models.TransientModel):
     def action_compute_trial_balance(self):
         self.ensure_one()
         action = self.env['idil.transaction_bookingline'].compute_trial_balance(self.report_currency_id)
-        action['``context``'] = {'default_name': f'Trial Balance for {self.report_currency_id.name}'}
+        action['``context```'] = {'default_name': f'Trial Balance for {self.report_currency_id.name}'}
         return action
 
 

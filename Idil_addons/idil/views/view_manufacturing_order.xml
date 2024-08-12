@@ -1,20 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <!-- Manufacturing Order Form View -->
     <record id="view_form_manufacturing_order" model="ir.ui.view">
         <field name="name">idil.manufacturing.order.form</field>
         <field name="model">idil.manufacturing.order</field>
         <field name="arch" type="xml">
             <form string="Manufacturing Order">
-                <sheet>
-                    <group>
-                        <field name="name"/>
-                        <field name="bom_id"/>
-                        <field name="product_qty"/>
-                        <field name="product_cost" readonly="1"/>
+                <header>
+                    <field name="status" widget="statusbar"
+                           statusbar_visible="draft,confirmed,in_progress,done,cancelled"/>
 
-                        <field name="scheduled_start_date"/>
-                        <field name="status"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="bom_id"/>
+                            <field name="product_id" readonly="1"/>
+                            <field name="product_qty"/>
+                            <field name="product_cost" readonly="1"/>
+                            <field name="scheduled_start_date"/>
+                        </group>
+                        <group>
+                            <field name="commission_employee_id"/>
+                            <field name="commission_amount" readonly="1"/>
+                            <field name="bom_grand_total" readonly="1"/>
+                            <field name="tfg_qty" readonly="1"/>
+                            <field name="currency_id"/>
+                            <field name="rate"/>
+                        </group>
                     </group>
                     <notebook>
                         <page string="Manufacturing Order Lines">
@@ -22,28 +39,41 @@
                                    options="{'editable': 'bottom'}">
                                 <tree editable="bottom">
                                     <field name="item_id" options="{'no_create': True}"/>
-
-
                                     <field name="quantity_bom" readonly="1" force_save="1"
                                            help="The planned quantity of items needed for the manufacturing order."/>
                                     <field name="quantity"
                                            help="The actual quantity of items used in the manufacturing process."/>
                                     <field name="quantity_diff" readonly="1"
                                            help="The difference between the planned and actual quantities."/>
-
-
                                     <field name="cost_price"/>
                                     <field name="row_total" readonly="1"/>
+                                    <field name="cost_amount_sos" readonly="1"/>
+
                                 </tree>
                             </field>
                         </page>
-
                     </notebook>
-                    <group>
-                        <field name="bom_grand_total" readonly="1"/>
-                    </group>
                 </sheet>
             </form>
+        </field>
+    </record>
+    <!-- Manufacturing Order Tree View -->
+    <record id="view_tree_manufacturing_order" model="ir.ui.view">
+        <field name="name">idil.manufacturing.order.tree</field>
+        <field name="model">idil.manufacturing.order</field>
+        <field name="arch" type="xml">
+            <tree string="Manufacturing Orders">
+                <field name="name"/>
+                <field name="bom_id"/>
+                <field name="product_id"/>
+                <field name="product_qty"/>
+                <field name="product_cost" string="Product Cost Price"/>
+
+                <field name="scheduled_start_date"/>
+                <field name="status"/>
+                <field name="commission_employee_id"/>
+                <field name="commission_amount"/>
+            </tree>
         </field>
     </record>
 
@@ -52,6 +82,7 @@
         <field name="name">Manufacturing Orders</field>
         <field name="res_model">idil.manufacturing.order</field>
         <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_tree_manufacturing_order"/>
     </record>
 
 

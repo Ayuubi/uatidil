@@ -6,17 +6,31 @@
         <field name="model">idil.item</field>
         <field name="arch" type="xml">
             <tree>
+                <field name="image" widget="image" options="{'size': (20, 20)}"/> <!-- Adjust size here -->
+
                 <field name="name"/>
-                <field name="description"/>
-                <field name="unitmeasure_id"/>
-                <field name="item_category_id" string="Item Category"/>
-                <field name="quantity"/>
-                <field name="cost_price"/>
-                <field name="allergens"/>
-                <field name="purchase_date"/>
-                <field name="expiration_date"/>
-                <field name="order_information"/>
-                <field name="bar_code"/>
+                <field name="description" optional="hide"/>
+                <field name="unitmeasure_id" string="UOM" optional="show"/>
+                <field name="item_category_id" string="Category" optional="show"/>
+                <field name="quantity" string="QTY"/>
+                <field name="currency_id" string="Currency"/>
+                <field name="cost_price" string="Cost"/>
+
+                <field name="total_price" string="Total" widget="monetary"
+                       options="{'currency_field': 'currency_id'}" sum="Total"/>
+
+
+                <field name="min" string="Re-Order" optional="show"/>
+                <field name="purchase_account_id" string="COGS" optional="show"/>
+                <field name="sales_account_id" string="Revenue" optional="hide"/>
+                <field name="asset_account_id" string="Inventory" optional="show"/>
+                <field name="allergens" optional="hide"/>
+                <field name="purchase_date" string="Date" optional="show"/>
+                <field name="expiration_date" optional="show"/>
+                <field name="days_until_expiration" string="Expiration" optional="show"/>
+
+                <field name="order_information" optional="hide"/>
+                <field name="bar_code" optional="hide"/>
             </tree>
         </field>
     </record>
@@ -96,6 +110,7 @@
         <field name="model">idil.item</field>
         <field name="arch" type="xml">
             <form>
+
                 <sheet>
                     <group>
                         <group>
@@ -127,6 +142,8 @@
                                     <field name="quantity"/>
                                     <field name="min"/>
                                     <field name="cost_price" string="Cost Price"/>
+                                    <field name="is_tfg" string="TFG"/>
+
                                 </group>
 
                             </group>
@@ -152,6 +169,22 @@
                                 </group>
                             </group>
                         </page>
+                        <page string="Item Movements">
+                            <field name="movement_ids" readonly="1">
+                                <tree string="Item Movements" create="false" delete="false" edit="false">
+
+                                    <field name="date" readonly="1"/>
+                                    <field name="transaction_number" readonly="1"/>
+                                    <field name="quantity" readonly="1"/>
+                                    <field name="source" readonly="1"/>
+                                    <field name="vendor_id" readonly="1"/>
+                                    <field name="destination" readonly="1"/>
+                                    <field name="product_id" readonly="1"/>
+                                    <field name="movement_type" readonly="1"/>
+                                    <field name="related_document" readonly="1"/>
+                                </tree>
+                            </field>
+                        </page>
                     </notebook>
                     <div class="oe_chatter">
                         <field name="message_follower_ids"/>
@@ -172,6 +205,7 @@
         <field name="view_id" ref="view_idil_item_tree"/>
         <field name="search_view_id" ref="view_idil_item_search"/>
         <field name="context">{}</field>
+
     </record>
 
 </odoo>

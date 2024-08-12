@@ -6,19 +6,23 @@
         <field name="model">idil.vendor_transaction</field>
         <field name="arch" type="xml">
             <tree string="Vendor Transactions" create="false" delete="false" decoration-danger="remaining_amount > 0">
-                <field name="transaction_date"/>
-                <field name="reffno"/>
-                <field name="transaction_number"/>
-                <field name="order_number"/>
+
+                <field name="transaction_date" string="Date"/>
+                <field name="reffno" string="Reff"/>
+                <field name="transaction_number" string="TRS NO"/>
+                <field name="order_number" string="Order No"/>
                 <field name="vendor_id"/>
                 <field name="vendor_name"/>
                 <field name="vendor_phone" optional="show"/>
                 <field name="vendor_email" optional="hide"/>
-                <field name="amount"/>
-                <field name="paid_amount"/>
-                <field name="remaining_amount"/>
-                <field name="payment_method" optional="hide"/>
-                <field name="payment_status" optional="show"/>
+                <field name="amount" string="Amount"/>
+                <field name="paid_amount" string="Paid"/>
+                <field name="remaining_amount" string="Due"/>
+                <field name="payment_method" string="Method" optional="hide"/>
+                <field name="payment_status" string="Status" widget="statusbar" statusbar_visible="pending,partial_paid,paid"
+                       decoration-danger="payment_status == 'pending'"
+                       decoration-warning="payment_status == 'partial_paid'"
+                       decoration-primary="payment_status == 'paid'"/>
             </tree>
         </field>
     </record>
@@ -29,6 +33,12 @@
         <field name="model">idil.vendor_transaction</field>
         <field name="arch" type="xml">
             <form string="Vendor Transaction">
+                <header>
+                    <field name="payment_status" widget="statusbar" statusbar_visible="pending,partial_paid,paid"
+                           decoration-danger="payment_status == 'pending'"
+                           decoration-warning="payment_status == 'partial_paid'"
+                           decoration-primary="payment_status == 'paid'"/>
+                </header>
                 <sheet>
                     <sheet>
                         <group>

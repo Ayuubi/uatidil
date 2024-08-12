@@ -30,8 +30,43 @@ class IdilEmployee(models.Model):
         ('freelance', 'Freelancer')
     ], string='Employee Type')
     pin = fields.Char(string='PIN', copy=False,
-                      help='PIN used to Check In/Out in the Kiosk Mode of the Attendance application (if enabled in Configuration) and to change the cashier in the Point of Sale application.')
+                      help='PIN used to Check In/Out in the Kiosk Mode of the Attendance application '
+                           '(if enabled in Configuration) and to change the cashier in the Point of Sale application.')
     image_1920 = fields.Image(string="Image", max_width=1920, max_height=1920)
+
+    currency_id = fields.Many2one('res.currency', string='Currency', required=True,
+                                  default=lambda self: self.env.company.currency_id)
+
+    account_id = fields.Many2one('idil.chart.account', string='Commission Account',
+                                 domain="[('account_type', 'like', 'commission'), ('code', 'like', '2%'), "
+                                        "('currency_id', '=', currency_id)]"
+                                 )
+
+    commission = fields.Float(string='Commission Percentage')
+
+    @api.onchange('currency_id')
+    def _onchange_currency_id(self):
+        """Updates the domain for account_id based on the selected currency."""
+        for employee in self:
+            if employee.currency_id:
+                return {
+                    'domain': {
+                        'account_id': [
+                            ('account_type', 'like', 'commission'),
+                            ('code', 'like', '2%'),
+                            ('currency_id', '=', employee.currency_id.id)
+                        ]
+                    }
+                }
+            else:
+                return {
+                    'domain': {
+                        'account_id': [
+                            ('account_type', 'like', 'commission'),
+                            ('code', 'like', '2%')
+                        ]
+                    }
+                }
 
     @api.model
     def create(self, vals):

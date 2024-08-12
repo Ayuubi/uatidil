@@ -10,5 +10,6 @@
             <field name="padding">5</field> <!-- Sequence number padding, e.g., 00001 -->
             <field name="company_id" eval="False"/> <!-- Apply to all companies; set specific company ID if needed -->
         </record>
+
     </data>
 </odoo>

@@ -1,12 +1,5 @@
-import re
-from datetime import datetime
-
-from odoo import models, fields, api, exceptions
-import logging
-
+from odoo import models, fields, api
 from odoo.exceptions import ValidationError, UserError
-
-_logger = logging.getLogger(__name__)
 
 
 class SalespersonOrder(models.Model):
@@ -17,26 +10,42 @@ class SalespersonOrder(models.Model):
     order_date = fields.Datetime(string='Order Date', default=fields.Datetime.now)
     order_lines = fields.One2many('idil.salesperson.place.order.line', 'order_id', string='Order Lines')
     state = fields.Selection([('draft', 'Draft'), ('confirmed', 'Confirmed'), ('cancel', 'Cancelled')], default='draft')
+    total_quantity = fields.Float(string='Total Quantity', compute='_compute_total_quantity', store=True)
+
+    @api.depends('order_lines.quantity')
+    def _compute_total_quantity(self):
+        for order in self:
+            order.total_quantity = sum(line.quantity for line in order.order_lines)
 
     @api.model
     def create(self, vals):
-        # Check if the salesperson already has an active draft order
         existing_draft_order = self.search([
             ('salesperson_id', '=', vals.get('salesperson_id')),
             ('state', '=', 'draft'),
         ], limit=1)
 
         if existing_draft_order:
-            # If an active draft order exists, prevent creation of a new one
             raise UserError(
                 "This salesperson already has an active draft order. "
                 "Please edit the existing order or change its state before creating a new one.")
 
-        # If no active draft order exists, proceed with creating the new order
-        return super(SalespersonOrder, self).create(vals)
+        order = super(SalespersonOrder, self).create(vals)
+        # Create summary entries after the order is created
+        self.env['idil.salesperson.order.summary'].create_summary_from_order(order)
+        return order
+
+    def write(self, vals):
+        res = super(SalespersonOrder, self).write(vals)
+        # Update the summary entries after the order is modified
+        self.env['idil.salesperson.order.summary'].update_summary_from_order(self)
+        return res
+
+    def unlink(self):
+        # Delete the corresponding summary entries before deleting the order
+        self.env['idil.salesperson.order.summary'].delete_summary_from_order(self)
+        return super(SalespersonOrder, self).unlink()
 
     def action_confirm_order(self):
-        # Additional logic can be added here, like stock availability checks, etc.
         self.write({'state': 'confirmed'})
 
 
@@ -58,3 +67,39 @@ class SalespersonOrderLine(models.Model):
         for line in self:
             if line.quantity <= 0:
                 raise ValidationError("Quantity must be greater than zero.")
+
+
+class SalespersonOrderSummary(models.Model):
+    _name = 'idil.salesperson.order.summary'
+    _description = 'Salesperson Order Summary'
+
+    salesperson_name = fields.Char(string='Salesperson Name', required=True)
+    product_name = fields.Char(string='Product Name', required=True)
+    quantity = fields.Float(string='Quantity', required=True)
+    order_date = fields.Datetime(string='Order Date', required=True)
+
+    @api.model
+    def create_summary_from_order(self, order):
+        for line in order.order_lines:
+            self.create({
+                'salesperson_name': order.salesperson_id.name,
+                'product_name': line.product_id.name,
+                'quantity': line.quantity,
+                'order_date': order.order_date,
+            })
+
+    @api.model
+    def update_summary_from_order(self, order):
+        # Delete existing summary entries for this order
+        self.search(
+            [('order_date', '=', order.order_date), ('salesperson_name', '=', order.salesperson_id.name)]).unlink()
+        # Recreate summary entries based on updated order
+        self.create_summary_from_order(order)
+
+    @api.model
+    def delete_summary_from_order(self, order):
+        # Logic to delete summary entries corresponding to the order
+        self.search([
+            ('salesperson_name', '=', order.salesperson_id.name),
+            ('order_date', '=', order.order_date)
+        ]).unlink()
