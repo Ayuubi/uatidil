@@ -7,7 +7,7 @@
     'depends': ['mail', 'point_of_sale', 'web'],
     'application': True,
     'sequence': -100,
-    'author': 'Merge',
+    'author': 'cadani',
 
     'assets': {
         'web.assets_common': [
