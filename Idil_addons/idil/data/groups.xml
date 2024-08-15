@@ -39,4 +39,9 @@
     <record id="group_idil_kitchen_management" model="res.groups">
         <field name="name">Kitchen Management</field>
     </record>
+
+     <record id="group_idil_for_basic_sales" model="res.groups">
+        <field name="name">Basic Access for Sales Team Management</field>
+    </record>
+
 </odoo>
