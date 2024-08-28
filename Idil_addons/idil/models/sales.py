@@ -1,11 +1,16 @@
+import re
+
 from odoo import models, fields, api
 from odoo.exceptions import UserError, ValidationError
+from odoo.tools.safe_eval import datetime
 
 
 class SaleOrder(models.Model):
     _name = 'idil.sale.order'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _description = 'Sale Order'
+
+    name = fields.Char(string='Sales Reference', tracking=True)
 
     sales_person_id = fields.Many2one('idil.sales.sales_personnel', string='Salesperson', required=True
                                       )
@@ -18,7 +23,8 @@ class SaleOrder(models.Model):
     order_date = fields.Datetime(string='Order Date', default=fields.Datetime.now)
     order_lines = fields.One2many('idil.sale.order.line', 'order_id', string='Order Lines')
     order_total = fields.Float(string='Order Total', compute='_compute_order_total', store=True)
-    state = fields.Selection([('draft', 'Draft'), ('confirmed', 'Confirmed'), ('cancel', 'Cancelled')], default='draft')
+    state = fields.Selection([('draft', 'Draft'), ('confirmed', 'Confirmed'), ('cancel', 'Cancelled')],
+                             default='confirmed')
 
     commission_amount = fields.Float(
         string='Commission Amount',
@@ -63,6 +69,10 @@ class SaleOrder(models.Model):
                 # Optionally handle the case where no draft SalespersonOrder is found
                 raise UserError("No draft SalespersonOrder found for the given salesperson.")
 
+            # Set order reference if not provided
+            if 'name' not in vals or not vals['name']:
+                vals['name'] = self._generate_order_reference(vals)
+
         # Proceed with creating the SaleOrder with the updated vals
         new_order = super(SaleOrder, self).create(vals)
         # Create a corresponding SalesReceipt
@@ -72,11 +82,36 @@ class SaleOrder(models.Model):
             'paid_amount': 0,
             'remaining_amount': new_order.order_total,
             'salesperson_id': new_order.sales_person_id.id,
+
         })
+
+        for line in new_order.order_lines:
+            self.env['idil.product.movement'].create({
+                'product_id': line.product_id.id,
+                'movement_type': "out",
+                'quantity': line.quantity * -1,
+                'date': fields.Datetime.now(),
+                'source_document': new_order.name,
+                'sales_person_id': new_order.sales_person_id.id,
+            })
 
         new_order.book_accounting_entry()
 
         return new_order
+
+    def _generate_order_reference(self, vals):
+        bom_id = vals.get('bom_id', False)
+        if bom_id:
+            bom = self.env['idil.bom'].browse(bom_id)
+            bom_name = re.sub('[^A-Za-z0-9]+', '', bom.name[:2]).upper() if bom and bom.name else 'XX'
+            date_str = '/' + datetime.now().strftime('%d%m%Y')
+            day_night = '/DAY/' if datetime.now().hour < 12 else '/NIGHT/'
+            sequence = self.env['ir.sequence'].next_by_code('idil.sale.order.sequence')
+            sequence = sequence[-3:] if sequence else '000'
+            return f"{bom_name}{date_str}{day_night}{sequence}"
+        else:
+            # Fallback if no BOM is provided
+            return self.env['ir.sequence'].next_by_code('idil.sale.order.sequence')
 
     @api.depends('order_lines.subtotal')
     def _compute_order_total(self):

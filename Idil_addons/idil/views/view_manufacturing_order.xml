@@ -40,14 +40,17 @@
                                 <tree editable="bottom">
                                     <field name="item_id" options="{'no_create': True}"/>
                                     <field name="quantity_bom" readonly="1" force_save="1"
-                                           help="The planned quantity of items needed for the manufacturing order."/>
+                                           help="The planned quantity of items needed for the manufacturing order."
+                                           sum="Total"/>
                                     <field name="quantity"
-                                           help="The actual quantity of items used in the manufacturing process."/>
+                                           help="The actual quantity of items used in the manufacturing process."
+                                           sum="Total"/>
                                     <field name="quantity_diff" readonly="1"
-                                           help="The difference between the planned and actual quantities."/>
-                                    <field name="cost_price"/>
-                                    <field name="row_total" readonly="1"/>
-                                    <field name="cost_amount_sos" readonly="1"/>
+                                           help="The difference between the planned and actual quantities."
+                                           sum="Total"/>
+                                    <field name="cost_price" sum="Total"/>
+                                    <field name="row_total" readonly="1" sum="Total"/>
+                                    <field name="cost_amount_sos" readonly="1" sum="Total"/>
 
                                 </tree>
                             </field>
@@ -66,13 +69,14 @@
                 <field name="name"/>
                 <field name="bom_id"/>
                 <field name="product_id"/>
-                <field name="product_qty"/>
-                <field name="product_cost" string="Product Cost Price"/>
+                <field name="product_qty" sum="Total"/>
+                <field name="product_cost" string="Product Cost Price" sum="Total"/>
 
                 <field name="scheduled_start_date"/>
                 <field name="status"/>
                 <field name="commission_employee_id"/>
-                <field name="commission_amount"/>
+                <field name="commission_employee_id"/>
+                <field name="commission_amount" sum="Total"/>
             </tree>
         </field>
     </record>

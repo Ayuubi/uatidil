@@ -13,20 +13,30 @@ class ModelA(models.Model):
     @api.model
     def delete_other_models_data(self, *args, **kwargs):
         models_to_delete = [
-            'idil.vendor_transaction',
-            'idil.vendor_payment',
-            'idil_commission',
-            'idil.manufacturing.order.line',
-            'idil.manufacturing.order',
+            'idil.sale.return.line',
+            'idil.sale.return',
 
-            'idil.purchase_order.line',
-            'idil.purchase_order',
-
-            'idil.salesperson.place.order.line',
-            'idil.salesperson.place.order',
+            'idil.sales.receipt',
 
             'idil.sale.order.line',
             'idil.sale.order',
+
+            'idil.salesperson.place.order',
+            'idil.salesperson.place.order.line',
+
+            'idil.item.movement',
+
+            'idil.vendor.payment',
+
+            'idil.commission.payment',
+            'idil.commission',
+            'idil.vendor.transaction',
+
+            'idil.purchase.order.line',
+            'idil.purchase.order',
+
+            'idil.journal.entry.line',
+            'idil.journal.entry',
 
             'idil.kitchen.cook.line',
             'idil.kitchen.cook.process',
@@ -34,22 +44,56 @@ class ModelA(models.Model):
             'idil.kitchen.transfer.line',
             'idil.kitchen.transfer',
 
-            'idil.journal.entry.line',
-            'idil.journal.entry',
-
-            'idil.transaction_bookingline',
-            'idil.transaction_booking',
-
             'idil.salesperson.transaction',
-            'idil.item.movement',
+            'idil.product.movement',
+            'idil.salesperson.order.summary',
 
-            # 'pos.payment',
-            # 'pos.order',
-            # 'pos.session',
-            # 'pos.config',
+            'idil.currency.exchange',
+
+            'idil.manufacturing.order.line',
+            'idil.manufacturing.order',
+
+            'idil.transaction.bookingline',
+            'idil.transaction.booking',
+
         ]
 
         deletion_summary = []
+        # Set all item quantities to zero
+        try:
+            items = self.env['idil.item'].search([])
+            if items:
+                item_count = len(items)
+                items.write({'quantity': 0})
+                message = f"Set quantity to zero for {item_count} items in idil.item."
+                self._logger.info(message)
+                deletion_summary.append(message)
+            else:
+                message = "No items found in idil.item to update."
+                self._logger.info(message)
+                deletion_summary.append(message)
+        except Exception as e:
+            message = f"Error updating item quantities: {e}"
+            self._logger.error(message)
+            deletion_summary.append(message)
+
+        # Set all product stock quantities to zero
+        try:
+            products = self.env['my_product.product'].search([])
+            if products:
+                product_count = len(products)
+                products.write({'stock_quantity': 0})
+                message = f"Set stock quantity to zero for {product_count} products in my_product.product."
+                self._logger.info(message)
+                deletion_summary.append(message)
+            else:
+                message = "No products found in my_product.product to update."
+                self._logger.info(message)
+                deletion_summary.append(message)
+        except Exception as e:
+            message = f"Error updating product stock quantities: {e}"
+            self._logger.error(message)
+            deletion_summary.append(message)
 
         for model_name in models_to_delete:
             try:

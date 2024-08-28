@@ -35,3 +35,6 @@ from . import BalanceSheetReport
 from . import Commission
 from . import CurrencyExchange
 from . import sales_receipt
+from . import sale_return
+from . import productmovement
+from . import StockAdjustment

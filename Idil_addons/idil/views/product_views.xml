@@ -32,6 +32,9 @@
                 <form>
                     <header>
                         <button string="Product Information" class="oe_highlight" colspan="4"/>
+                        <button name="export_movements_to_excel" type="object"
+                                string="Export Movements to Excel"
+                                class="oe_highlight"/>
                     </header>
                     <sheet>
                         <group>
@@ -107,7 +110,25 @@
                                     <field name="account_id"/>
                                 </group>
                             </page>
+                            <page string="Movement History">
+                                <group>
+                                    <field name="start_date"/>
+                                    <field name="end_date"/>
+                                </group>
 
+                                <field name="movement_ids">
+
+                                    <tree create="false" delete="false" editable="false">
+                                        <field name="date" readonly="1"/>
+                                        <field name="movement_type" readonly="1"/>
+                                        <field name="quantity" readonly="1" sum="Total"/>
+                                        <field name="source_document" readonly="1"/>
+                                        <field name="sales_person_id" readonly="1"/>
+
+
+                                    </tree>
+                                </field>
+                            </page>
                         </notebook>
                     </sheet>
                 </form>

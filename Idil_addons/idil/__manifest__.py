@@ -94,6 +94,9 @@
         'views/company_trial_balance.xml',
         'views/income_statement.xml',
         'views/idil_balance_sheet_report.xml',
+        'views/sale_return.xml',
+        'views/stock_adjustment_views.xml',
+
         'views/menu.xml',
     ],
 }

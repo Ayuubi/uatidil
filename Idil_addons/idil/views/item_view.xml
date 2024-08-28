@@ -143,6 +143,7 @@
                                     <field name="min"/>
                                     <field name="cost_price" string="Cost Price"/>
                                     <field name="is_tfg" string="TFG"/>
+                                    <field name="is_commission" string="Commission"/>
 
                                 </group>
 
@@ -166,6 +167,7 @@
                                     <field name="purchase_account_id" string="Purchase Account"/>
                                     <field name="sales_account_id" string="Sales Account"/>
                                     <field name="asset_account_id" string="Asset Account"/>
+                                    <field name="adjustment_account_id" string="Adjustment Account"/>
                                 </group>
                             </group>
                         </page>
@@ -175,7 +177,7 @@
 
                                     <field name="date" readonly="1"/>
                                     <field name="transaction_number" readonly="1"/>
-                                    <field name="quantity" readonly="1"/>
+                                    <field name="quantity" readonly="1" sum="Total"/>
                                     <field name="source" readonly="1"/>
                                     <field name="vendor_id" readonly="1"/>
                                     <field name="destination" readonly="1"/>
