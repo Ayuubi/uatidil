@@ -85,35 +85,20 @@ class ManufacturingOrder(models.Model):
     def _compute_commission_amount(self):
         for order in self:
             _logger.info(f"Computing commission for order {order.name}")
-
             if order.product_id:
                 _logger.info(f"Product ID: {order.product_id.id}, Product Name: {order.product_id.name}")
-
                 if order.product_id.account_id:
                     _logger.info(f"Product has commission account: {order.product_id.account_id.name}")
-
                     if order.product_id.is_commissionable:
                         _logger.info("Product is commissionable")
-
                         employee = order.commission_employee_id
                         if employee:
                             _logger.info(
                                 f"Commission Employee: {employee.name}, Commission Percentage: {employee.commission}")
-
                             commission_percentage = employee.commission
-                            commission_amount = 0.0
-
-                            # Loop through each item in the order
-                            for line in order.manufacturing_order_line_ids:
-                                item = line.item_id
-                                if item.is_commission:
-                                    _logger.info(f"Item {item.name} has commission flag set to True")
-                                    # Calculate commission for the item based on quantity
-                                    item_commission = commission_percentage * line.quantity
-                                    commission_amount += item_commission
-
-                            order.commission_amount = commission_amount
-                            _logger.info(f"Total Commission Amount: {order.commission_amount}")
+                            order.commission_amount = (
+                                                              commission_percentage / 100.0) * order.product_qty * order.product_id.sale_price
+                            _logger.info(f"Commission Amount: {order.commission_amount}")
                         else:
                             _logger.info("No commission employee assigned")
                             order.commission_amount = 0.0
@@ -418,14 +403,6 @@ class ManufacturingOrder(models.Model):
                 'date': fields.Date.context_today(self),
             })
 
-        self.env['idil.product.movement'].create({
-            'product_id': order.product_id.id,  # Corrected reference to order.product_id
-            'movement_type': "in",
-            'quantity': order.product_qty,
-            'date': fields.Datetime.now(),
-            'source_document': order.name,  # Use order.name instead of self.name
-        })
-
         return order
 
     def _get_account_balance(self, account_id):
@@ -666,7 +643,7 @@ class ManufacturingOrderLine(models.Model):
             self.env['idil.item.movement'].create({
                 'item_id': record.item_id.id,
                 'date': fields.Date.today(),
-                'quantity': record.quantity * -1,
+                'quantity': record.quantity,
                 'source': 'Inventory',
                 'destination': 'Manufacturing',
                 'movement_type': 'out',

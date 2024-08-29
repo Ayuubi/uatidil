@@ -7,7 +7,6 @@
         <field name="model">idil.sale.order</field>
         <field name="arch" type="xml">
             <tree>
-                <field name="name"/>
                 <field name="order_date"/>
                 <field name="order_total"/>
                 <field name="state"/>
@@ -25,7 +24,6 @@
                     <group>
 
                         <!-- Corrected invisible attributes -->
-                        <field name="name"/>
                         <field name="sales_person_id"/>
                         <field name="order_date"/>
                         <field name="commission_amount"/>

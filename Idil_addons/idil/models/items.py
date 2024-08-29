@@ -70,25 +70,12 @@ class item(models.Model):
         domain="[('code', 'like', '1'), ('currency_id.name', '=', 'USD')]"
         # Domain to filter accounts starting with '1' and in USD
     )
-
-    adjustment_account_id = fields.Many2one(
-        'idil.chart.account',
-        string='Asset Account',
-        help='Account to report adjustment of this item',
-        required=True,
-        tracking=True,
-        domain="[('code', 'like', '5'), ('currency_id.name', '=', 'USD')]"
-        # Domain to filter accounts starting with '1' and in USD
-    )
-
     days_until_expiration = fields.Integer(string='Days Until Expiration', compute='_compute_days_until_expiration',
                                            store=True, readonly=True)
     # New computed field
     total_price = fields.Float(string='Total Price', compute='_compute_total_price')
 
     is_tfg = fields.Boolean(string='Is TFG', default=False, tracking=True)
-    is_commission = fields.Boolean(string='Is Commission', default=False, tracking=True)
-
     # New field to track item movements
     movement_ids = fields.One2many('idil.item.movement', 'item_id', string='Item Movements')
 
@@ -262,9 +249,7 @@ class ItemMovement(models.Model):
     related_document = fields.Reference(
         selection=[
             ('idil.purchase_order.line', 'Purchase Order Line'),
-            ('idil.manufacturing.order.line', 'Manufacturing Order Line'),
-            ('idil.stock.adjustment', 'Stock Adjustment')  # Added Stock Adjustment reference
-
+            ('idil.manufacturing.order.line', 'Manufacturing Order Line')
         ],
         string='Related Document'
     )
