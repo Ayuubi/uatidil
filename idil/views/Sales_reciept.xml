@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!--    &lt;!&ndash; Tree View for Pending Sales-Related Transactions &ndash;&gt;-->
+    <!--    <record id="view_sales_related_pending_transactions_tree" model="ir.ui.view">-->
+    <!--        <field name="name">sales.related.pending.transactions.tree</field>-->
+    <!--        <field name="model">idil.transaction_booking</field>-->
+    <!--        <field name="arch" type="xml">-->
+    <!--            <tree string="Pending Sales-Related Transactions" decoration-danger="payment_status == 'pending'"-->
+    <!--                  decoration-warning="payment_status == 'partial_paid'"-->
+    <!--                  decoration-success="payment_status != 'pending' and payment_status != 'partial_paid'">-->
+
+    <!--                <field name="reffno"/>-->
+    <!--                <field name="transaction_number"/>-->
+    <!--                <field name="trx_date"/>-->
+    <!--                <field name="sales_person_id"/>-->
+    <!--                <field name="sale_order_id"/>-->
+    <!--                <field name="amount"/>-->
+    <!--                <field name="amount_paid"/>-->
+    <!--                <field name="remaining_amount"/>-->
+    <!--                <field name="payment_status"/>-->
+    <!--                &lt;!&ndash; Add any other relevant fields you wish to display &ndash;&gt;-->
+    <!--            </tree>-->
+    <!--        </field>-->
+    <!--    </record>-->
+    <!--    <record id="view_transaction_booking_form" model="ir.ui.view">-->
+    <!--        <field name="name">transaction.booking.form</field>-->
+    <!--        <field name="model">idil.transaction_booking</field>-->
+    <!--        <field name="arch" type="xml">-->
+    <!--            <form string="Transaction Booking">-->
+    <!--                <header>-->
+    <!--                    <button name="action_pay" string="Pay" type="object" class="oe_highlight"/>-->
+    <!--                </header>-->
+    <!--                <sheet>-->
+    <!--                    <group>-->
+    <!--                        <group>-->
+    <!--                            <field name="cash_account_id"/>-->
+    <!--                        </group>-->
+    <!--                        <group>-->
+    <!--                            <field name="transaction_number" readonly="1"/>-->
+    <!--                            <field name="sales_person_id" readonly="1"/>-->
+    <!--                            <field name="sale_order_id" readonly="1"/>-->
+    <!--                        </group>-->
+
+    <!--                        &lt;!&ndash; Other fields as necessary &ndash;&gt;-->
+    <!--                        <notebook>-->
+    <!--                            <page string="Amount Details">-->
+    <!--                                <group>-->
+    <!--                                    <field name="amount" readonly="1"/>-->
+    <!--                                    <field name="amount_paid"/>-->
+
+    <!--                                    <field name="remaining_amount" readonly="1"/>-->
+    <!--                                </group>-->
+
+    <!--                            </page>-->
+
+    <!--                        </notebook>-->
+
+    <!--                    </group>-->
+    <!--                </sheet>-->
+
+    <!--                <notebook>-->
+    <!--                    &lt;!&ndash; Other pages &ndash;&gt;-->
+    <!--                    <page string="Booking Information">-->
+    <!--                        <group string="Related Sales Order">-->
+    <!--                            <field name="sale_order_id"-->
+    <!--                                   readonly="1"/>-->
+    <!--                        </group>-->
+    <!--                    </page>-->
+    <!--                </notebook>-->
+
+    <!--            </form>-->
+    <!--        </field>-->
+    <!--    </record>-->
+
+    <!--    &lt;!&ndash; Action to Open Pending Sales-Related Transactions Tree View &ndash;&gt;-->
+
+
+    <!--    <record id="action_sales_related_pending_transactions" model="ir.actions.act_window">-->
+    <!--        <field name="name">View Transaction Booking</field>-->
+    <!--        <field name="res_model">idil.transaction_booking</field>-->
+    <!--        <field name="view_mode">tree,form</field>-->
+    <!--        <field name="domain">['&amp;', ('sale_order_id','!=',False), '|', ('payment_status','=','pending'),-->
+    <!--            ('payment_status','=','partial_paid')]-->
+    <!--        </field>-->
+    <!--        <field name="context">{'create': False, 'delete': False}</field>-->
+    <!--        <field name="view_ids" eval="[(5, 0, 0),-->
+    <!--                                   (0, 0, {'view_mode': 'tree', 'view_id': ref('view_sales_related_pending_transactions_tree')}),-->
+    <!--                                   (0, 0, {'view_mode': 'form', 'view_id': ref('view_transaction_booking_form')})]"/>-->
+    <!--    </record>-->
+    <data>
+        <!-- Form View for Sales Receipt -->
+        <record id="view_form_sales_receipt" model="ir.ui.view">
+            <field name="name">sales.receipt.form</field>
+            <field name="model">idil.sales.receipt</field>
+            <field name="arch" type="xml">
+                <form string="Sales Receipt">
+                    <header>
+                        <button string="Process Receipt" type="object" class="oe_highlight"
+                                name="action_process_receipt"/>
+
+                    </header>
+                    <sheet>
+                        <group>
+                            <field name="sales_order_id"/>
+                            <field name="salesperson_id"/>
+                            <field name="receipt_date"/>
+                            <field name="due_amount"/>
+                            <field name="payment_status"/>
+                            <field name="paid_amount"/>
+                            <field name="remaining_amount"/>
+                            <field name="amount_paying"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Tree View for Sales Receipt -->
+        <record id="view_tree_sales_receipt" model="ir.ui.view">
+            <field name="name">sales.receipt.tree</field>
+            <field name="model">idil.sales.receipt</field>
+            <field name="arch" type="xml">
+                <tree string="Sales Receipt">
+                    <field name="sales_order_id"/>
+                    <field name="salesperson_id"/>
+                    <field name="receipt_date"/>
+                    <field name="due_amount"/>
+                    <field name="payment_status"/>
+                    <field name="paid_amount"/>
+                    <field name="remaining_amount"/>
+                    <field name="amount_paying"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Action for Sales Receipt -->
+        <record id="action_sales_receipt" model="ir.actions.act_window">
+            <field name="name">Sales Receipts</field>
+            <field name="res_model">idil.sales.receipt</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+
+    </data>
+</odoo>
