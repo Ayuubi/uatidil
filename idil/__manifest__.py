@@ -7,7 +7,7 @@
     'depends': ['mail', 'point_of_sale', 'web'],
     'application': True,
     'sequence': -100,
-    'author': 'MSLTs',
+    'author': 'MSLTS',
 
     'assets': {
         'web.assets_common': [
